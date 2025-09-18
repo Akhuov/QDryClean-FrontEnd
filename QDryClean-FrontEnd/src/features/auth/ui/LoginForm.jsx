@@ -10,6 +10,9 @@ import {
   Paper,
 } from "@mui/material";
 
+// можно заменить на ваш логотип (png/svg в src/assets)
+import Logo from "../../../assets/logo.png";  
+
 export default function LoginForm({ onLoginSuccess }) {
   const [form, setForm] = useState({ login: "", password: "" });
   const [error, setError] = useState(null);
@@ -30,47 +33,77 @@ export default function LoginForm({ onLoginSuccess }) {
   };
 
   return (
-    <Container maxWidth="xs">
-      <Paper elevation={3} sx={{ p: 4, mt: 10, borderRadius: 3 }}>
-        <Typography variant="h5" align="center" gutterBottom>
-          Вход в систему
-        </Typography>
+    <Box
+      sx={{
+        minHeight: "100vh",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        background: "linear-gradient(135deg, #e0f7fa, #80deea, #26c6da)", // фон
+      }}
+    >
+      <Container maxWidth="xs">
+        <Paper
+          elevation={6}
+          sx={{
+            p: 4,
+            borderRadius: 4,
+            textAlign: "center",
+            backdropFilter: "blur(6px)",
+          }}
+        >
+          {/* Лого */}
+          <Box sx={{ display: "flex", justifyContent: "center", mb: 2 }}>
+            <img src={Logo} alt="Logo" style={{ width: 80, height: 80 }} />
+          </Box>
 
-        {error && <Alert severity="error">{error}</Alert>}
+          <Typography variant="h5" gutterBottom sx={{ fontWeight: "bold" }}>
+            Вход в систему
+          </Typography>
 
-        <Box component="form" onSubmit={handleSubmit} sx={{ mt: 2 }}>
-          <TextField
-            fullWidth
-            margin="normal"
-            label="Логин"
-            name="login"
-            value={form.login}
-            onChange={handleChange}
-            required
-          />
+          {error && <Alert severity="error">{error}</Alert>}
 
-          <TextField
-            fullWidth
-            margin="normal"
-            label="Пароль"
-            type="password"
-            name="password"
-            value={form.password}
-            onChange={handleChange}
-            required
-          />
+          <Box component="form" onSubmit={handleSubmit} sx={{ mt: 2 }}>
+            <TextField
+              fullWidth
+              margin="normal"
+              label="Логин"
+              name="login"
+              value={form.login}
+              onChange={handleChange}
+              required
+            />
 
-          <Button
-            type="submit"
-            fullWidth
-            variant="contained"
-            color="primary"
-            sx={{ mt: 2 }}
-          >
-            Войти
-          </Button>
-        </Box>
-      </Paper>
-    </Container>
+            <TextField
+              fullWidth
+              margin="normal"
+              label="Пароль"
+              type="password"
+              name="password"
+              value={form.password}
+              onChange={handleChange}
+              required
+            />
+
+            <Button
+              type="submit"
+              fullWidth
+              variant="contained"
+              color="primary"
+              sx={{
+                mt: 3,
+                borderRadius: 2,
+                py: 1.2,
+                textTransform: "none",
+                fontWeight: "bold",
+                background: "linear-gradient(90deg, #26c6da, #00acc1)",
+              }}
+            >
+              Войти
+            </Button>
+          </Box>
+        </Paper>
+      </Container>
+    </Box>
   );
 }
