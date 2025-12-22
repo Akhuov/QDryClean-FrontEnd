@@ -5,8 +5,8 @@ import UsersPage from "@/pages/UsersPage";
 function App() {
   return (
     <Routes>
+      { localStorage.getItem("token") && (<Route path="/users" element={<UsersPage />} />)}
       <Route path="/login" element={<LoginPage />} />
-      <Route path="/users" element={<UsersPage />} />
       <Route path="*" element={<Navigate to="/login" />} />
     </Routes>
   );

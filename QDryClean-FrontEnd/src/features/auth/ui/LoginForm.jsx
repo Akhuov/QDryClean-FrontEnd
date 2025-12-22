@@ -23,11 +23,14 @@ export default function LoginForm({ onLoginSuccess }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setError(null);
     try {
       const data = await loginUser(form);
       localStorage.setItem("token", data.token);
-      onLoginSuccess?.(data);
+      // Call onLoginSuccess without any arguments since the LoginPage doesn't use them
+      onLoginSuccess && onLoginSuccess();
     } catch (err) {
+      console.error('Login error:', err);
       setError("Неверный логин или пароль");
     }
   };
@@ -63,7 +66,8 @@ export default function LoginForm({ onLoginSuccess }) {
 
           {error && <Alert severity="error">{error}</Alert>}
 
-          <Box component="form" onSubmit={handleSubmit} sx={{ mt: 2 }}>
+          <Box component="form" onSubmit={handleSubmit} sx={{ mt: 2 }}> 
+
             <TextField
               fullWidth
               margin="normal"
@@ -73,7 +77,7 @@ export default function LoginForm({ onLoginSuccess }) {
               onChange={handleChange}
               required
             />
-
+          
             <TextField
               fullWidth
               margin="normal"
