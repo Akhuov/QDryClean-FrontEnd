@@ -1,4 +1,5 @@
-import React from "react";
+import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   Box,
   Typography,
@@ -19,6 +20,11 @@ import {
   TableContainer,
   TableHead,
   TableRow,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogContentText,
+  DialogTitle,
 } from "@mui/material";
 import {
   Dashboard,
@@ -31,7 +37,7 @@ import {
 
 const drawerWidth = 240;
 
-const customers = [
+const users = [
   {
     name: "Sophia Clark",
     phone: "(555) 123-4567",
@@ -69,7 +75,23 @@ const customers = [
   },
 ];
 
-export default function CustomersPage() {
+export default function UsersPage() {
+  const navigate = useNavigate();
+  const [isExitDialogOpen, setIsExitDialogOpen] = useState(false);
+
+  const handleExitClick = () => {
+    setIsExitDialogOpen(true);
+  };
+
+  const handleExitCancel = () => {
+    setIsExitDialogOpen(false);
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    navigate("/login");
+  };
+
   return (
     <Box sx={{ display: "flex" }}>
       {/* Sidebar */}
@@ -94,7 +116,7 @@ export default function CustomersPage() {
           {[
             { text: "Dashboard", icon: <Dashboard /> },
             { text: "Orders", icon: <ShoppingCart /> },
-            { text: "Customers", icon: <People />, selected: true },
+            { text: "Users", icon: <People />, selected: true },
             { text: "Services", icon: <Build /> },
             { text: "Settings", icon: <Settings /> },
           ].map((item, index) => (
@@ -124,9 +146,14 @@ export default function CustomersPage() {
         >
           <Toolbar sx={{ justifyContent: "space-between" }}>
             <Typography variant="h4" fontWeight="bold">
-              Customers
+              Users
             </Typography>
-            <Button variant="contained">New Customer</Button>
+            <Box sx={{ display: "flex", gap: 2 }}>
+              <Button variant="contained">New User</Button>
+              <Button variant="outlined" color="error" onClick={handleExitClick}>
+                Exit
+              </Button>
+            </Box>
           </Toolbar>
         </AppBar>
 
@@ -134,7 +161,7 @@ export default function CustomersPage() {
         <Box sx={{ display: "flex", gap: 2, mb: 3 }}>
           <TextField
             fullWidth
-            placeholder="Search customers"
+            placeholder="Search users"
             InputProps={{
               startAdornment: <Search sx={{ mr: 1, color: "text.secondary" }} />,
             }}
@@ -154,7 +181,7 @@ export default function CustomersPage() {
               </TableRow>
             </TableHead>
             <TableBody>
-              {customers.map((row, index) => (
+              {users.map((row, index) => (
                 <TableRow key={index}>
                   <TableCell>{row.name}</TableCell>
                   <TableCell>{row.phone}</TableCell>
@@ -166,6 +193,25 @@ export default function CustomersPage() {
             </TableBody>
           </Table>
         </TableContainer>
+        <Dialog
+          open={isExitDialogOpen}
+          onClose={handleExitCancel}
+          aria-labelledby="exit-confirmation-title"
+          aria-describedby="exit-confirmation-description"
+        >
+          <DialogTitle id="exit-confirmation-title">Are you sure?</DialogTitle>
+          <DialogContent>
+            <DialogContentText id="exit-confirmation-description">
+              Are you sure you want to exit your profile?
+            </DialogContentText>
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={handleExitCancel}>No</Button>
+            <Button variant="contained" color="error" onClick={handleLogout}>
+              Yes
+            </Button>
+          </DialogActions>
+        </Dialog>
       </Box>
     </Box>
   );
