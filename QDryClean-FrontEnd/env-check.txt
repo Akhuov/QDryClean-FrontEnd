@@ -1,0 +1,8 @@
+# Для разработки с прокси (рекомендуется):
+# VITE_API_URL=/api/v1
+
+# Для прямого подключения к backend (если прокси не работает):
+# VITE_API_URL=http://localhost:5000/api/v1
+
+# Для продакшена:
+# VITE_API_URL=http://your-production-url/api/v1
