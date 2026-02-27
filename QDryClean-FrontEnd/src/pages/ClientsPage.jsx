@@ -55,7 +55,7 @@ export default function ClientsPage() {
               Add Client
             </Button>
           </DialogTrigger>
-          <DialogContent className="sm:max-w-[500px]">
+          <DialogContent className="sm:max-w-[680px] bg-white opacity-100">
             <DialogHeader>
               <DialogTitle className="text-foreground">Add New Client</DialogTitle>
             </DialogHeader>
