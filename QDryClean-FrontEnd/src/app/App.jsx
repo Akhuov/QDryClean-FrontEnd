@@ -1,14 +1,13 @@
 import { BrowserRouter as Router, Routes, Route, useNavigate, useLocation } from 'react-router-dom';
 import { LayoutDashboard, ShoppingCart, Package, Users, Settings, LogOut } from 'lucide-react';
-
 import DashboardPage from '../pages/DashboardPage';
 import OrdersPage from '../pages/OrdersPage';
 import PackagesPage from '../pages/PackagesPage';
 import ClientsPage from '../pages/ClientsPage';
 import LoginPage from '../pages/LoginPage';
-
 import AuthWrapper from '../components/AuthWrapper';
 import { authService } from '../features/auth/authService';
+import Logo from '../assets/logo-sample.png';
 
 function AppContent() {
   const navigate = useNavigate();
@@ -53,6 +52,11 @@ function AppContent() {
         
         {/* Logo */}
         <div className="h-16 flex items-center px-6 border-b border-gray-200">
+          <img 
+              src={Logo} 
+              alt="QDryClean Logo" 
+              className="w-15 h-10 object-contain"
+          />
           <h1 className="text-xl font-semibold text-gray-900">QDryClean</h1>
         </div>
 

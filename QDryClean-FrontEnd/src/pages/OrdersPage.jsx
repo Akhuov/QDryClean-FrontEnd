@@ -9,14 +9,16 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '.
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../components/ui/select';
 import { Textarea } from '../components/ui/textarea';
 import axiosInstance from '../shared/api/axiosInstance';
+import { ChevronLeft, ChevronRight } from "lucide-react";
 
-// Маппинг статуса (подстрой под свой BE)
+// Маппинг статуса
 const statusMap = {
-  0: { label: 'New', badge: 'bg-muted text-muted-foreground' },
-  1: { label: 'In Progress', badge: 'bg-blue-500/10 text-blue-600' },
-  2: { label: 'Ready', badge: 'bg-success/10 text-success' },
-  3: { label: 'Completed', badge: 'bg-success/10 text-success' },
-  4: { label: 'Canceled', badge: 'bg-destructive/10 text-destructive' },
+  0: { label: "Created",   badge: "bg-zinc-200 text-zinc-900 border border-zinc-400" },
+  1: { label: "Accepted",  badge: "bg-sky-200 text-sky-900 border border-sky-400" },
+  2: { label: "Ready",     badge: "bg-yellow-200 text-yellow-950 border border-yellow-400" },
+  3: { label: "Completed", badge: "bg-emerald-200 text-emerald-950 border border-emerald-400" },
+  4: { label: "Canceled",  badge: "bg-rose-200 text-rose-950 border border-rose-400" },
+  5: { label: "Donated",   badge: "bg-violet-200 text-violet-950 border border-violet-400" },
 };
 
 function StatusBadge({ status }) {
@@ -75,10 +77,9 @@ export default function OrdersPage() {
           params: {
             page: pageArg,
             pageSize,
-            search: q || undefined,
+            //search: q || undefined,
           },
         });
-
         if (res.data?.code !== 0) {
           throw new Error(res.data?.message || 'API error');
         }
@@ -177,7 +178,7 @@ export default function OrdersPage() {
 
         <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
           <DialogTrigger asChild>
-            <Button className="bg-primary hover:bg-primary/90 flex items-center gap-2">
+            <Button className="bg-primary flex items-center gap-2 border border-primary">
               <Plus className="w-4 h-4" />
               Add Order
             </Button>
@@ -285,7 +286,7 @@ export default function OrdersPage() {
               />
             </div>
 
-            <Button onClick={handleSearch} variant="outline" className="border-input" disabled={loading}>
+            <Button onClick={handleSearch} variant="outline" className="border-input hover:shadow-sm" disabled={loading}>
               Search
             </Button>
           </div>
@@ -382,7 +383,7 @@ export default function OrdersPage() {
             disabled={!canPrev || loading}
             onClick={() => setPage((p) => Math.max(1, p - 1))}
           >
-            Previous
+            <ChevronLeft className="w-4 h-4" />
           </Button>
 
           <Button variant="outline" size="sm" className="bg-primary text-primary-foreground border-primary" disabled>
@@ -396,7 +397,7 @@ export default function OrdersPage() {
             disabled={!canNext || loading}
             onClick={() => setPage((p) => p + 1)}
           >
-            Next
+            <ChevronRight className="w-4 h-4" />
           </Button>
         </div>
       </div>
