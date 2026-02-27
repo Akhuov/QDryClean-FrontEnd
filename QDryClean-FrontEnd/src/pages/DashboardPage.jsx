@@ -129,7 +129,7 @@ export default function DashboardPage() {
                 <XAxis dataKey="month" stroke="#6B7280" />
                 <YAxis stroke="#6B7280" />
                 <Tooltip />
-                <Bar dataKey="orders" fill="#1CB9C8" radius={[8, 8, 0, 0]} />
+                <Bar dataKey="orders" fill="var(--color-primary)" radius={[8, 8, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
           </CardContent>

@@ -13,7 +13,7 @@
   --card-foreground: #2C3142;
   --popover: #ffffff;
   --popover-foreground: #2C3142;
-  --primary: #0B7FE6;
+  --primary: #5988ecff;
   --primary-foreground: #ffffff;
   --secondary: #1CB9C8;
   --secondary-foreground: #ffffff;
@@ -48,6 +48,7 @@
   --sidebar-accent-foreground: #2C3142;
   --sidebar-border: #E5E7EB;
   --sidebar-ring: #0B7FE6;
+  
 }
 
 .dark {
