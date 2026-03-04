@@ -36,6 +36,14 @@ function getAxiosErrorMessage(err) {
   );
 }
 
+const parseId = (v) => {
+  const s = String(v ?? '').trim();
+  if (!s) return null;
+  if (!/^\d+$/.test(s)) return null;
+  const n = Number(s);
+  return Number.isSafeInteger(n) ? n : null;
+};
+
 export default function OrdersPage() {
   // search input (то, что пользователь печатает)
   const [searchQuery, setSearchQuery] = useState('');
@@ -67,41 +75,71 @@ export default function OrdersPage() {
 
   const pageSize = 10;
 
-  const fetchOrders = useCallback(
-    async ({ page: pageArg, q }) => {
-      setLoading(true);
-      setApiError('');
+const fetchOrders = useCallback(
+  async ({ page: pageArg, q }) => {
+    setLoading(true);
+    setApiError('');
 
-      try {
-        const res = await axiosInstance.get('/orders', {
-          params: {
-            page: pageArg,
-            pageSize,
-            //search: q || undefined,
-          },
-        });
+    try {
+      const id = parseId(q);
+
+      // ✅ search by id -> /orders/{id}
+      if (id !== null) {
+        const res = await axiosInstance.get(`/orders/${id}`);
+
         if (res.data?.code !== 0) {
           throw new Error(res.data?.message || 'API error');
         }
 
-        // Ожидаем { items, page, pageSize, totalCount, totalPages }
-        const resp = res.data.response;
+        const order = res.data?.response ?? res.data?.responseBody ?? null;
 
         setPaged({
-          items: resp?.items ?? [],
-          page: resp?.page ?? pageArg,
-          pageSize: resp?.pageSize ?? pageSize,
-          totalCount: resp?.totalCount ?? 0,
-          totalPages: resp?.totalPages ?? 1,
+          items: order ? [order] : [],
+          page: 1,
+          pageSize,
+          totalCount: order ? 1 : 0,
+          totalPages: 1,
         });
-      } catch (err) {
-        setApiError(getAxiosErrorMessage(err));
-      } finally {
-        setLoading(false);
+
+        return;
       }
-    },
-    [pageSize]
-  );
+
+      // ✅ обычный список с пагинацией
+      const res = await axiosInstance.get('/orders', {
+        params: {
+          page: pageArg,
+          pageSize,
+        },
+      });
+
+      if (res.data?.code !== 0) {
+        throw new Error(res.data?.message || 'API error');
+      }
+
+      const resp = res.data.response ?? res.data.responseBody;
+
+      setPaged({
+        items: resp?.items ?? [],
+        page: resp?.page ?? pageArg,
+        pageSize: resp?.pageSize ?? pageSize,
+        totalCount: resp?.totalCount ?? 0,
+        totalPages: resp?.totalPages ?? 1,
+      });
+    } catch (err) {
+      setApiError(getAxiosErrorMessage(err));
+      setPaged((p) => ({
+        ...p,
+        items: [],
+        page: 1,
+        totalCount: 0,
+        totalPages: 1,
+      }));
+    } finally {
+      setLoading(false);
+    }
+  },
+  [pageSize]
+);
 
   // Загружаем при старте и при смене page (по appliedSearch)
   useEffect(() => {
@@ -164,8 +202,10 @@ export default function OrdersPage() {
   // Таблица: тут уже НЕ делаем дополнительный фильтр, чтобы не "двойной фильтрации"
   const orders = useMemo(() => paged.items ?? [], [paged.items]);
 
-  const canPrev = page > 1;
-  const canNext = page < (paged.totalPages || 1);
+  const isIdSearch = parseId(appliedSearch) !== null;
+
+  const canPrev = !isIdSearch && page > 1;
+  const canNext = !isIdSearch && page < (paged.totalPages || 1);
 
   return (
     <div className="p-8 space-y-8">
@@ -276,19 +316,36 @@ export default function OrdersPage() {
         <CardContent className="py-6">
           <div className="flex items-center gap-4">
             <div className="relative flex-1">
-              <Search className="w-4 h-4 text-muted-foreground absolute left-3 top-1/2 -translate-y-1/2" />
+              {/* Иконка поиска слева */}
+              <Search className="w-4 h-4 text-muted-foreground absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+
               <Input
-                placeholder="Search orders by id, receipt number, customerId..."
+                placeholder="Search order by id"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 onKeyDown={handleSearchKeyDown}
-                className="bg-input-background border-input pl-10"
+                className="bg-input-background border-input pl-10 pr-10"
               />
-            </div>
 
-            <Button onClick={handleSearch} variant="outline" className="border-input hover:shadow-sm" disabled={loading}>
+              {/* Кнопка очистки справа */}
+              {searchQuery && (
+                <Button
+                  variant="delete"
+                  onClick={() => {
+                    setSearchQuery('');
+                    setAppliedSearch('');
+                    setPage(1);
+                  }}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                >
+                  <Trash2 className="w-4 h-4" />
+                </Button>
+              )}
+            </div>
+            <Button onClick={handleSearch} variant="default" className="border-input hover:shadow-sm" disabled={loading}>
               Search
             </Button>
+
           </div>
 
           {apiError && <p className="text-sm text-destructive mt-3">{apiError}</p>}
@@ -299,7 +356,7 @@ export default function OrdersPage() {
       <Card className="border-border shadow-sm">
         <CardHeader>
           <CardTitle className="text-foreground">
-            All Orders ({orders.length})
+            Orders
           </CardTitle>
         </CardHeader>
 
@@ -310,7 +367,6 @@ export default function OrdersPage() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>ID</TableHead>
                   <TableHead>Customer</TableHead>
                   <TableHead>Receipt</TableHead>
                   <TableHead>Expected Date</TableHead>
@@ -323,7 +379,6 @@ export default function OrdersPage() {
               <TableBody>
                 {orders.map((order) => (
                   <TableRow key={order.id}>
-                    <TableCell className="font-medium text-foreground">{order.id}</TableCell>
                     <TableCell className="text-muted-foreground">{order.customerId}</TableCell>
                     <TableCell className="text-muted-foreground">{order.receiptNumber}</TableCell>
                     <TableCell className="text-muted-foreground">
@@ -337,16 +392,16 @@ export default function OrdersPage() {
                     </TableCell>
                     <TableCell className="text-right">
                       <div className="flex items-center justify-end gap-2">
-                        <Button variant="ghost" size="sm" className="h-8 w-8 p-0 hover:bg-muted" title="View">
+                        <Button size="sm" className="h-8 w-8 p-0 hover:bg-muted" title="View">
                           <Eye className="w-4 h-4 text-muted-foreground" />
                         </Button>
-                        <Button variant="ghost" size="sm" className="h-8 w-8 p-0 hover:bg-muted" title="Edit">
+                        <Button size="sm" className="h-8 w-8 p-0 hover:bg-muted" title="Edit">
                           <Edit className="w-4 h-4 text-muted-foreground" />
                         </Button>
                         <Button
-                          variant="ghost"
+                          variant="delete"
                           size="sm"
-                          className="h-8 w-8 p-0 hover:bg-destructive/10 hover:text-destructive"
+                          className="h-8 w-8 p-0"
                           title="Delete"
                         >
                           <Trash2 className="w-4 h-4" />
@@ -377,7 +432,6 @@ export default function OrdersPage() {
 
         <div className="flex items-center gap-2">
           <Button
-            variant="outline"
             size="sm"
             className="border-input"
             disabled={!canPrev || loading}
@@ -386,12 +440,11 @@ export default function OrdersPage() {
             <ChevronLeft className="w-4 h-4" />
           </Button>
 
-          <Button variant="outline" size="sm" className="bg-primary text-primary-foreground border-primary" disabled>
+          <Button size="sm" className="bg-primary text-primary-foreground border-primary" disabled>
             {page}
           </Button>
 
           <Button
-            variant="outline"
             size="sm"
             className="border-input"
             disabled={!canNext || loading}

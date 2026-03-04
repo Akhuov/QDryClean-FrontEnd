@@ -62,6 +62,7 @@ export default function ClientsPage() {
             <div className="space-y-6 py-4">
               <div className="space-y-2">
                 <Label htmlFor="clientName">Full Name *</Label>
+                
                 <Input
                   id="clientName"
                   placeholder="Enter client name"
