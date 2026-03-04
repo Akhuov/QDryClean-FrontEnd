@@ -1,48 +1,14 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { Search, Plus, Edit, Trash2, Eye } from 'lucide-react';
+import { Plus, Edit, Trash2, Eye, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
-import { Input } from '../components/ui/input';
-import { Label } from '../components/ui/label';
 import { Button } from '../components/ui/button';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '../components/ui/dialog';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../components/ui/table';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../components/ui/select';
-import { Textarea } from '../components/ui/textarea';
 import axiosInstance from '../shared/api/axiosInstance';
-import { ChevronLeft, ChevronRight } from "lucide-react";
-
-// Маппинг статуса
-const statusMap = {
-  0: { label: "Created",   badge: "bg-zinc-200 text-zinc-900 border border-zinc-400" },
-  1: { label: "Accepted",  badge: "bg-sky-200 text-sky-900 border border-sky-400" },
-  2: { label: "Ready",     badge: "bg-yellow-200 text-yellow-950 border border-yellow-400" },
-  3: { label: "Completed", badge: "bg-emerald-200 text-emerald-950 border border-emerald-400" },
-  4: { label: "Canceled",  badge: "bg-rose-200 text-rose-950 border border-rose-400" },
-  5: { label: "Donated",   badge: "bg-violet-200 text-violet-950 border border-violet-400" },
-};
-
-function StatusBadge({ status }) {
-  const meta = statusMap[status] ?? { label: `Status ${status}`, badge: 'bg-muted text-muted-foreground' };
-  return <span className={`px-3 py-1 rounded-full text-sm ${meta.badge}`}>{meta.label}</span>;
-}
-
-function getAxiosErrorMessage(err) {
-  // axios error: err.response?.data?.message / err.message
-  return (
-    err?.response?.data?.message ||
-    err?.response?.data?.error ||
-    err?.message ||
-    'Request failed'
-  );
-}
-
-const parseId = (v) => {
-  const s = String(v ?? '').trim();
-  if (!s) return null;
-  if (!/^\d+$/.test(s)) return null;
-  const n = Number(s);
-  return Number.isSafeInteger(n) ? n : null;
-};
+import StatusBadge from '../components/StatusBadge';
+import { getAxiosErrorMessage, parseId } from '../utils/apiHelpers';
+import OrderFormDialog from '../components/orders/OrderFormDialog';
+import OrdersMetrics from '../components/orders/OrdersMetrics';
+import OrdersSearchToolbar from '../components/orders/OrdersSearchToolbar';
 
 export default function OrdersPage() {
   // search input (то, что пользователь печатает)
@@ -75,58 +41,59 @@ export default function OrdersPage() {
 
   const pageSize = 10;
 
-const fetchOrders = useCallback(
-  async ({ page: pageArg, q }) => {
-    setLoading(true);
-    setApiError('');
+  const fetchOrders = useCallback(
+    async ({ page: pageArg, q }) => {
+      setLoading(true);
+      setApiError('');
 
-    try {
-      const trimmed = String(q ?? '').trim();
-      
-      // ✅ список + search
-      const res = await axiosInstance.get('/orders', {
-        params: {
-          page: pageArg,
-          pageSize,
-          search: trimmed || undefined, // ВОТ ЭТО НУЖНО
-        },
-      });
+      try {
+        const trimmed = String(q ?? '').trim();
 
-      if (res.data?.code !== 0) throw new Error(res.data?.message || 'API error');
+        // ✅ список + search
+        const res = await axiosInstance.get('/orders', {
+          params: {
+            page: pageArg,
+            pageSize,
+            search: trimmed || undefined, // ВОТ ЭТО НУЖНО
+          },
+        });
 
-      const resp = res.data.response ?? res.data.responseBody;
+        if (res.data?.code !== 0) throw new Error(res.data?.message || 'API error');
 
-      setPaged({
-        items: resp?.items ?? [],
-        page: resp?.page ?? pageArg,
-        pageSize: resp?.pageSize ?? pageSize,
-        totalCount: resp?.totalCount ?? 0,
-        totalPages: resp?.totalPages ?? 1,
-      });
-    } catch (err) {
-      setApiError(getAxiosErrorMessage(err));
-      setPaged((p) => ({ ...p, items: [], page: 1, totalCount: 0, totalPages: 1 }));
-    } finally {
-      setLoading(false);
-    }
-  },
-  [pageSize]
-);
+        const resp = res.data.response ?? res.data.responseBody;
+
+        setPaged({
+          items: resp?.items ?? [],
+          page: resp?.page ?? pageArg,
+          pageSize: resp?.pageSize ?? pageSize,
+          totalCount: resp?.totalCount ?? 0,
+          totalPages: resp?.totalPages ?? 1,
+        });
+      } catch (err) {
+        setApiError(getAxiosErrorMessage(err));
+        setPaged((p) => ({ ...p, items: [], page: 1, totalCount: 0, totalPages: 1 }));
+      } finally {
+        setLoading(false);
+      }
+    },
+    [pageSize]
+  );
 
   // Загружаем при старте и при смене page (по appliedSearch)
   useEffect(() => {
     fetchOrders({ page, q: appliedSearch });
   }, [fetchOrders, page, appliedSearch]);
 
-  // Кнопка Search применяет строку и сбрасывает страницу на 1
+  const handleSearchChange = (value) => setSearchQuery(value);
+  const handleSearchClear = () => {
+    setSearchQuery('');
+    setAppliedSearch('');
+    setPage(1);
+  };
+
   const handleSearch = () => {
     setPage(1);
     setAppliedSearch(searchQuery.trim());
-  };
-
-  // Enter в поле поиска
-  const handleSearchKeyDown = (e) => {
-    if (e.key === 'Enter') handleSearch();
   };
 
   const handleCreateOrder = async () => {
@@ -189,152 +156,37 @@ const fetchOrders = useCallback(
         </div>
       </div>
 
-      {/* Search */}
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <Card className="bg-card text-card-foreground flex flex-col gap-6 rounded-xl border shadow-sm relative w-[350px]">
-        <CardContent className="py-6">
-          <div className="flex items-center gap-4">
-            <div className="relative w-[250px]">
-              {/* Иконка поиска слева */}
-              <Search className="w-4 h-4 text-muted-foreground absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+      {/* Top toolbar */}
+      <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+        <OrdersSearchToolbar
+          searchQuery={searchQuery}
+          onSearchChange={handleSearchChange}
+          onSearch={handleSearch}
+          onClear={handleSearchClear}
+          loading={loading}
+          error={apiError}
+        />
 
-              <Input
-                placeholder="Search"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                onKeyDown={handleSearchKeyDown}
-                className="bg-input-background border-input pl-10 pr-10 py-2"
-              />
+        <div className="w-full flex-1">
+          <OrdersMetrics />
+        </div>
 
-              {/* Кнопка очистки справа */}
-              {searchQuery && (
-                <Button
-                  type="button"
-                  variant="delete"
-                  size="icon"
-                  onClick={() => {
-                    setSearchQuery('');
-                    setAppliedSearch('');
-                    setPage(1);
-                  }}
-                  className={`
-                    absolute right-3 inset-y-0 my-auto
-                    h-8 w-8 p-0
-                    flex items-center justify-center
-                    shadow-none
-                    active:translate-y-0 active:scale-100
-                    transition-opacity
-                    ${searchQuery ? 'opacity-100' : 'opacity-0 pointer-events-none'}
-                  `}
-                >
-                  <Trash2 className="h-4 w-4" />
-                </Button>
-              )}
-            </div>
-            <Button onClick={handleSearch} variant="default" className="border-input hover:shadow-sm" disabled={loading}>
-              Search
-            </Button>
-          </div>
-
-          {apiError && <p className="text-sm text-destructive mt-3">{apiError}</p>}
-        </CardContent>
-      </Card>
-
-      <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-          <DialogTrigger asChild>
-            <Button className="bg-primary flex items-center gap-2 border border-primary">
-              <Plus className="w-4 h-4" />
+        <div className="w-full lg:w-auto">
+          <OrderFormDialog
+            open={isModalOpen}
+            onOpenChange={setIsModalOpen}
+            order={newOrder}
+            onChange={setNewOrder}
+            onSubmit={handleCreateOrder}
+            loading={loading}
+          >
+            <Button variant="default" className="h-10 w-full lg:w-auto flex items-center gap-2 border border-border">
+              <Plus className="h-4 w-4" />
               Add Order
             </Button>
-          </DialogTrigger>
-
-          <DialogContent className="sm:max-w-[680px] bg-white opacity-100">
-            <DialogHeader>
-              <DialogTitle className="text-foreground">Add New Order</DialogTitle>
-            </DialogHeader>
-
-            <div className="space-y-6 py-2">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="customerId">Customer ID *</Label>
-                  <Input
-                    id="customerId"
-                    placeholder="1"
-                    value={newOrder.customerId}
-                    onChange={(e) => setNewOrder((p) => ({ ...p, customerId: e.target.value }))}
-                    className="bg-input-background border-input w-full"
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="receiptNumber">Receipt Number *</Label>
-                  <Input
-                    id="receiptNumber"
-                    placeholder="1"
-                    value={newOrder.receiptNumber}
-                    onChange={(e) => setNewOrder((p) => ({ ...p, receiptNumber: e.target.value }))}
-                    className="bg-input-background border-input w-full"
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label>Process Status</Label>
-                  <Select
-                    value={String(newOrder.processStatus)}
-                    onValueChange={(v) => setNewOrder((p) => ({ ...p, processStatus: Number(v) }))}
-                  >
-                    <SelectTrigger className="bg-input-background border-input w-full">
-                      <SelectValue placeholder="Select status" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="0">New</SelectItem>
-                      <SelectItem value="1">In Progress</SelectItem>
-                      <SelectItem value="2">Ready</SelectItem>
-                      <SelectItem value="3">Completed</SelectItem>
-                      <SelectItem value="4">Canceled</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="expectedCompletionDate">Expected Completion Date</Label>
-                  <Input
-                    id="expectedCompletionDate"
-                    type="date"
-                    value={newOrder.expectedCompletionDate}
-                    onChange={(e) => setNewOrder((p) => ({ ...p, expectedCompletionDate: e.target.value }))}
-                    className="bg-input-background border-input w-full"
-                  />
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="notes">Notes (one per line)</Label>
-                <Textarea
-                  id="notes"
-                  placeholder={'Test 1\nTest 2'}
-                  value={newOrder.notesText}
-                  onChange={(e) => setNewOrder((p) => ({ ...p, notesText: e.target.value }))}
-                  className="bg-input-background border-input min-h-[140px] w-full resize-none"
-                />
-                <p className="text-xs text-muted-foreground">
-                  Each line will be saved as a separate note.
-                </p>
-              </div>
-
-              <div className="flex items-center justify-end gap-2 pt-2">
-                <Button variant="outline" className="border-input" onClick={() => setIsModalOpen(false)}>
-                  Cancel
-                </Button>
-                <Button onClick={handleCreateOrder} className="bg-primary hover:bg-primary/90">
-                  Create Order
-                </Button>
-              </div>
-            </div>
-          </DialogContent>
-        </Dialog>
+          </OrderFormDialog>
+        </div>
       </div>
-      
 
       {/* Orders Table */}
       <Card className="border-border shadow-sm">
@@ -353,6 +205,7 @@ const fetchOrders = useCallback(
                 <TableRow>
                   <TableHead>Customer</TableHead>
                   <TableHead>Receipt Number</TableHead>
+                  <TableHead>Created Date</TableHead>
                   <TableHead>Expected Date</TableHead>
                   <TableHead className="text-center">Items</TableHead>
                   <TableHead className="text-center">Status</TableHead>
@@ -366,7 +219,10 @@ const fetchOrders = useCallback(
                     <TableCell className="text-muted-foreground">{order.customerName}</TableCell>
                     <TableCell className="text-muted-foreground">{order.receiptNumber}</TableCell>
                     <TableCell className="text-muted-foreground">
-                      {order.expectedCompletionDate || '—'}
+                      {order.createdAt ? new Date(order.createdAt).toLocaleDateString() : '—'}
+                    </TableCell>
+                    <TableCell className="text-muted-foreground">
+                      {order.expectedCompletionDate ? new Date(order.expectedCompletionDate).toLocaleDateString() : '—'}
                     </TableCell>
                     <TableCell className="text-center text-foreground">
                       {order.itemsCount}
