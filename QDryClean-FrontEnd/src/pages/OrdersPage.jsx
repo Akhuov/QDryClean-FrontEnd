@@ -81,40 +81,18 @@ const fetchOrders = useCallback(
     setApiError('');
 
     try {
-      const id = parseId(q);
-
-      // ✅ search by id -> /orders/{id}
-      if (id !== null) {
-        const res = await axiosInstance.get(`/orders/${id}`);
-
-        if (res.data?.code !== 0) {
-          throw new Error(res.data?.message || 'API error');
-        }
-
-        const order = res.data?.response ?? res.data?.responseBody ?? null;
-
-        setPaged({
-          items: order ? [order] : [],
-          page: 1,
-          pageSize,
-          totalCount: order ? 1 : 0,
-          totalPages: 1,
-        });
-
-        return;
-      }
-
-      // ✅ обычный список с пагинацией
+      const trimmed = String(q ?? '').trim();
+      
+      // ✅ список + search
       const res = await axiosInstance.get('/orders', {
         params: {
           page: pageArg,
           pageSize,
+          search: trimmed || undefined, // ВОТ ЭТО НУЖНО
         },
       });
 
-      if (res.data?.code !== 0) {
-        throw new Error(res.data?.message || 'API error');
-      }
+      if (res.data?.code !== 0) throw new Error(res.data?.message || 'API error');
 
       const resp = res.data.response ?? res.data.responseBody;
 
@@ -127,13 +105,7 @@ const fetchOrders = useCallback(
       });
     } catch (err) {
       setApiError(getAxiosErrorMessage(err));
-      setPaged((p) => ({
-        ...p,
-        items: [],
-        page: 1,
-        totalCount: 0,
-        totalPages: 1,
-      }));
+      setPaged((p) => ({ ...p, items: [], page: 1, totalCount: 0, totalPages: 1 }));
     } finally {
       setLoading(false);
     }
@@ -215,8 +187,60 @@ const fetchOrders = useCallback(
           <h1 className="text-3xl font-semibold text-foreground">Orders</h1>
           <p className="text-muted-foreground mt-1">Create and manage orders.</p>
         </div>
+      </div>
 
-        <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
+      {/* Search */}
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <Card className="bg-card text-card-foreground flex flex-col gap-6 rounded-xl border shadow-sm relative w-[350px]">
+        <CardContent className="py-6">
+          <div className="flex items-center gap-4">
+            <div className="relative w-[250px]">
+              {/* Иконка поиска слева */}
+              <Search className="w-4 h-4 text-muted-foreground absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+
+              <Input
+                placeholder="Search"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                onKeyDown={handleSearchKeyDown}
+                className="bg-input-background border-input pl-10 pr-10 py-2"
+              />
+
+              {/* Кнопка очистки справа */}
+              {searchQuery && (
+                <Button
+                  type="button"
+                  variant="delete"
+                  size="icon"
+                  onClick={() => {
+                    setSearchQuery('');
+                    setAppliedSearch('');
+                    setPage(1);
+                  }}
+                  className={`
+                    absolute right-3 inset-y-0 my-auto
+                    h-8 w-8 p-0
+                    flex items-center justify-center
+                    shadow-none
+                    active:translate-y-0 active:scale-100
+                    transition-opacity
+                    ${searchQuery ? 'opacity-100' : 'opacity-0 pointer-events-none'}
+                  `}
+                >
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+              )}
+            </div>
+            <Button onClick={handleSearch} variant="default" className="border-input hover:shadow-sm" disabled={loading}>
+              Search
+            </Button>
+          </div>
+
+          {apiError && <p className="text-sm text-destructive mt-3">{apiError}</p>}
+        </CardContent>
+      </Card>
+
+      <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
           <DialogTrigger asChild>
             <Button className="bg-primary flex items-center gap-2 border border-primary">
               <Plus className="w-4 h-4" />
@@ -310,47 +334,7 @@ const fetchOrders = useCallback(
           </DialogContent>
         </Dialog>
       </div>
-
-      {/* Search */}
-      <Card className="border-border shadow-sm">
-        <CardContent className="py-6">
-          <div className="flex items-center gap-4">
-            <div className="relative flex-1">
-              {/* Иконка поиска слева */}
-              <Search className="w-4 h-4 text-muted-foreground absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
-
-              <Input
-                placeholder="Search order by id"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                onKeyDown={handleSearchKeyDown}
-                className="bg-input-background border-input pl-10 pr-10"
-              />
-
-              {/* Кнопка очистки справа */}
-              {searchQuery && (
-                <Button
-                  variant="delete"
-                  onClick={() => {
-                    setSearchQuery('');
-                    setAppliedSearch('');
-                    setPage(1);
-                  }}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-                >
-                  <Trash2 className="w-4 h-4" />
-                </Button>
-              )}
-            </div>
-            <Button onClick={handleSearch} variant="default" className="border-input hover:shadow-sm" disabled={loading}>
-              Search
-            </Button>
-
-          </div>
-
-          {apiError && <p className="text-sm text-destructive mt-3">{apiError}</p>}
-        </CardContent>
-      </Card>
+      
 
       {/* Orders Table */}
       <Card className="border-border shadow-sm">
@@ -368,7 +352,7 @@ const fetchOrders = useCallback(
               <TableHeader>
                 <TableRow>
                   <TableHead>Customer</TableHead>
-                  <TableHead>Receipt</TableHead>
+                  <TableHead>Receipt Number</TableHead>
                   <TableHead>Expected Date</TableHead>
                   <TableHead className="text-center">Items</TableHead>
                   <TableHead className="text-center">Status</TableHead>
@@ -379,13 +363,13 @@ const fetchOrders = useCallback(
               <TableBody>
                 {orders.map((order) => (
                   <TableRow key={order.id}>
-                    <TableCell className="text-muted-foreground">{order.customerId}</TableCell>
+                    <TableCell className="text-muted-foreground">{order.customerName}</TableCell>
                     <TableCell className="text-muted-foreground">{order.receiptNumber}</TableCell>
                     <TableCell className="text-muted-foreground">
                       {order.expectedCompletionDate || '—'}
                     </TableCell>
                     <TableCell className="text-center text-foreground">
-                      {Array.isArray(order.items) ? order.items.length : 0}
+                      {order.itemsCount}
                     </TableCell>
                     <TableCell className="text-center">
                       <StatusBadge status={order.processStatus} />
