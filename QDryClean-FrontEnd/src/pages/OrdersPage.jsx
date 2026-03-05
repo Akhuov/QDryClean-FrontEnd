@@ -167,10 +167,6 @@ export default function OrdersPage() {
           error={apiError}
         />
 
-        <div className="w-full flex-1">
-          <OrdersMetrics />
-        </div>
-
         <div className="w-full lg:w-auto">
           <OrderFormDialog
             open={isModalOpen}
