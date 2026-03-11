@@ -118,7 +118,7 @@ function AlertDialogAction({
 }) {
   return (
     <AlertDialogPrimitive.Action
-      className={cn(buttonVariants(), className)}
+      className={cn(buttonVariants({variant: "delete"}), className)}
       {...props}
     />
   );
@@ -130,7 +130,7 @@ function AlertDialogCancel({
 }) {
   return (
     <AlertDialogPrimitive.Cancel
-      className={cn(buttonVariants({ variant: "outline" }), className)}
+      className={cn(buttonVariants({ variant: "default" }), className)}
       {...props}
     />
   );
