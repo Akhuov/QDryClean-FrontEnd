@@ -178,7 +178,7 @@ export default function OrdersPage() {
           >
             <Button variant="default" className="h-10 w-full lg:w-auto flex items-center gap-2 border border-border">
               <Plus className="h-4 w-4" />
-              Add Order
+              Create Order
             </Button>
           </OrderFormDialog>
         </div>
