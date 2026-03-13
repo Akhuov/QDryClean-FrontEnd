@@ -19,22 +19,9 @@ import {
 } from '../ui/alert-dialog';
 import axiosInstance from "../../shared/api/axiosInstance";
 
-const ITEM_TYPE_PRICES = {
-  coat: 150000,
-  suit: 180000,
-  jacket: 120000,
-  blanket: 90000,
-};
-
-const ITEM_TYPE_LABELS = {
-  coat: 'Пальто',
-  suit: 'Костюм',
-  jacket: 'Куртка',
-  blanket: 'Плед',
-};
 
 const EMPTY_NEW_ITEM = {
-  type: 'coat',
+  type: '',
   color: '',
   brand: '',
   defects: '',
@@ -52,7 +39,7 @@ function OrderItemCard({ item, onDelete }) {
       <div className="flex items-start justify-between gap-4">
         <div className="min-w-0">
           <p className="text-sm text-muted-foreground">
-            Тип: {ITEM_TYPE_LABELS[item.type]}
+            Тип: {item.typeName}
           </p>
           <p className="mt-1 text-lg font-semibold text-foreground">{item.title}</p>
           <p className="mt-2 text-sm text-muted-foreground">Цвет: {item.color}</p>
@@ -160,6 +147,7 @@ export default function OrderFormDialog({
   loading,
   children,
 }) {
+
   const [phone, setPhone] = useState('');  
   const [items, setItems] = useState([]);
   const [isAddingItem, setIsAddingItem] = useState(false);
@@ -172,12 +160,48 @@ export default function OrderFormDialog({
   const itemsEndRef = useRef(null);
   const fileInputRef = useRef(null);
 
-  const newItemPrice = ITEM_TYPE_PRICES[newItem.type] ?? 0;
+  const [itemTypes, setItemTypes] = useState([]);
+  const [itemTypesLoading, setItemTypesLoading] = useState(false);
+  const [itemTypesError, setItemTypesError] = useState('');
+
+  const selectedItemType = useMemo(() => {
+    return itemTypes.find((itemType) => String(itemType.id) === String(newItem.type)) || null;
+  }, [itemTypes, newItem.type]);
+  const newItemPrice = selectedItemType?.cost ?? 0;
 
   const total = useMemo(() => {
     return items.reduce((sum, item) => sum + item.price, 0) + (isAddingItem ? newItemPrice : 0);
   }, [items, isAddingItem, newItemPrice]);
 
+
+  const fetchItemTypes = async () => {
+    try {
+      setItemTypesLoading(true);
+      setItemTypesError('');
+
+      const res = await axiosInstance.get('/item-types');
+      const data = res.data;
+
+      if (data?.code !== 0) {
+        throw new Error(data?.message || 'Failed to load item types');
+      }
+
+      setItemTypes(data.response ?? []);
+
+    } catch (error) {
+      console.error("Error loading item types:", error);
+
+      setItemTypes([]);
+      setItemTypesError(
+        error.response?.data?.message ||
+        error.message ||
+        'Failed to load item types'
+      );
+
+    } finally {
+      setItemTypesLoading(false);
+    }
+  };
   const resetCustomerOrderData = () => {
     setCustomer(null);
     setCustomerError('');
@@ -202,7 +226,7 @@ export default function OrderFormDialog({
   };
 
   const handleSearchCustomer = async () => {
-    resetCustomerOrderData
+    resetCustomerOrderData();
     const normalizedPhone = getPhoneNumberForRequest(phone);
 
       if (normalizedPhone.length !== 9) {
@@ -241,10 +265,15 @@ export default function OrderFormDialog({
       }
   };
 
-  const handleStartAddItem = () => {
+  const handleStartAddItem = async () => {
+
+      // если уже загружено — не грузим второй раз
+    if (itemTypes.length === 0) {
+      await fetchItemTypes();
+    }
     setNewItem({
       ...EMPTY_NEW_ITEM,
-      type: 'coat',
+      type: itemTypes.length > 0 ? String(itemTypes[0].id) : '',
     });
     setIsAddingItem(true);
   };
@@ -263,14 +292,18 @@ export default function OrderFormDialog({
   };
 
   const handleSaveItem = () => {
+    if (!selectedItemType) return;
+
     const createdItem = {
       id: Date.now(),
-      type: newItem.type,
-      title: `${newItem.brand || 'New'} ${ITEM_TYPE_LABELS[newItem.type].toLowerCase()}`,
+      type: String(selectedItemType.id),
+      typeId: selectedItemType.id,
+      typeName: selectedItemType.name,
+      title: `${newItem.brand || 'New'} ${selectedItemType.name}`,
       color: newItem.color || 'Не указан',
       brand: newItem.brand || 'Не указан',
       defects: newItem.defects || 'Нет заметок',
-      price: newItemPrice,
+      price: selectedItemType.cost ?? 0,
       photoFile: newItem.photoFile,
       photoPreview: newItem.photoPreview,
     };
@@ -290,7 +323,12 @@ export default function OrderFormDialog({
     const payload = {
       customerId: customer.id,
       phoneNumber: customer.phoneNumber || phone,
-      items,
+      items: items.map((item) => ({
+        itemTypeId: item.typeId,
+        colour: item.color,
+        brandName: item.brand,
+        description: item.defects,
+      })),
     };
 
     console.log('Create order payload:', payload);
@@ -359,6 +397,8 @@ export default function OrderFormDialog({
     };
   }, [items, newItem.photoPreview]);
 
+  
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogTrigger asChild>{children}</DialogTrigger>
@@ -417,7 +457,7 @@ export default function OrderFormDialog({
 
                     <div>
                       <p className="text-lg font-semibold text-foreground">
-                        {customer.firstName || customer.lastName}
+                        {`${customer.firstName} ${customer.lastName}`}
                       </p>
                       <p className="text-sm text-muted-foreground">
                         {customer.phoneNumber}
@@ -461,17 +501,26 @@ export default function OrderFormDialog({
                           onValueChange={(value) =>
                             setNewItem((prev) => ({ ...prev, type: value }))
                           }
+                          disabled={itemTypesLoading || itemTypes.length === 0}
                         >
                           <SelectTrigger className="bg-input-background border-input w-full">
-                            <SelectValue placeholder="Select item type" />
+                            <SelectValue
+                              placeholder={itemTypesLoading ? 'Loading item types...' : 'Select item type'}
+                            />
                           </SelectTrigger>
+
                           <SelectContent>
-                            <SelectItem value="coat">Пальто</SelectItem>
-                            <SelectItem value="suit">Костюм</SelectItem>
-                            <SelectItem value="jacket">Куртка</SelectItem>
-                            <SelectItem value="blanket">Плед</SelectItem>
+                            {itemTypes.map((itemType) => (
+                              <SelectItem key={itemType.id} value={String(itemType.id)}>
+                                {itemType.name}
+                              </SelectItem>
+                            ))}
                           </SelectContent>
                         </Select>
+
+                        {itemTypesError && (
+                          <p className="text-sm text-destructive">{itemTypesError}</p>
+                        )}
                       </div>
 
                       <div className="space-y-2">
