@@ -7,7 +7,6 @@ import axiosInstance from '../shared/api/axiosInstance';
 import StatusBadge from '../components/StatusBadge';
 import { getAxiosErrorMessage, parseId } from '../utils/apiHelpers';
 import OrderFormDialog from '../components/orders/OrderFormDialog';
-import OrdersMetrics from '../components/orders/OrdersMetrics';
 import OrdersSearchToolbar from '../components/orders/OrdersSearchToolbar';
 
 export default function OrdersPage() {

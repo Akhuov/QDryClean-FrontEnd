@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState, forwardRef } from 'react';
 import { Plus, Search, Trash2, Upload, User } from 'lucide-react';
 import { Button } from '../ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '../ui/dialog';
@@ -33,9 +33,20 @@ function formatCurrency(value) {
   return new Intl.NumberFormat('ru-RU').format(value) + ' UZS';
 }
 
-function OrderItemCard({ item, onDelete }) {
+function formatPhoneDisplay(phone) {
+  if (!phone) return '';
+
+    const digits = phone.replace(/\D/g, '').slice(-9);
+
+    return digits.replace(
+      /(\d{2})(\d{3})(\d{2})(\d{2})/,
+      '+998 $1 $2 $3 $4'
+    );
+}
+
+const OrderItemCard = forwardRef(({ item, onDelete }, ref) => {
   return (
-    <div className="rounded-xl border border-border bg-card p-4 shadow-sm">
+    <div ref={ref} className="rounded-xl border border-border bg-card p-4 shadow-sm">
       <div className="flex items-start justify-between gap-4">
         <div className="min-w-0">
           <p className="text-sm text-muted-foreground">
@@ -66,7 +77,7 @@ function OrderItemCard({ item, onDelete }) {
             <AlertDialogTrigger asChild>
               <Button
                 type="button"
-                variant="ghost"
+                variant="delete"
                 size="icon"
                 className="text-muted-foreground hover:text-destructive"
               >
@@ -97,7 +108,9 @@ function OrderItemCard({ item, onDelete }) {
       </div>
     </div>
   );
-}
+});
+
+OrderItemCard.displayName = 'OrderItemCard';
 
 function getPhoneDigits(value) {
   return value.replace(/\D/g, '');
@@ -202,6 +215,12 @@ export default function OrderFormDialog({
       setItemTypesLoading(false);
     }
   };
+
+  const resetCustomerSearchState = () => {
+    setCustomer(null);
+    setCustomerError('');
+  };
+  
   const resetCustomerOrderData = () => {
     setCustomer(null);
     setCustomerError('');
@@ -222,11 +241,10 @@ export default function OrderFormDialog({
   const handlePhoneChange = (e) => {
     const formattedValue = formatPhoneInput(e.target.value);
     setPhone(formattedValue);
-    // resetCustomerOrderData();
   };
 
   const handleSearchCustomer = async () => {
-    resetCustomerOrderData();
+    resetCustomerSearchState();
     const normalizedPhone = getPhoneNumberForRequest(phone);
 
       if (normalizedPhone.length !== 9) {
@@ -400,10 +418,23 @@ export default function OrderFormDialog({
   
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog 
+      open={open}
+      onOpenChange={(isOpen) => {
+        if (!isOpen) {
+          resetCustomerOrderData();
+          setPhone('');
+        }
+
+        onOpenChange(isOpen);
+      }}
+    >
       <DialogTrigger asChild>{children}</DialogTrigger>
 
-      <DialogContent className="sm:max-w-[920px] bg-white">
+      <DialogContent 
+        className="sm:max-w-[920px] bg-white"
+        onInteractOutside={(e) => e.preventDefault()}
+      >
         <DialogHeader>
           <DialogTitle className="text-foreground text-[20px] font-semibold">
             Create Order
@@ -457,10 +488,10 @@ export default function OrderFormDialog({
 
                     <div>
                       <p className="text-lg font-semibold text-foreground">
-                        {`${customer.firstName} ${customer.lastName}`}
+                        {`${customer.firstName}`}
                       </p>
                       <p className="text-sm text-muted-foreground">
-                        {customer.phoneNumber}
+                        {formatPhoneDisplay(customer.phoneNumber)}
                       </p>
                     </div>
                   </div>
