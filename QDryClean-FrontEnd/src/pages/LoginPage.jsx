@@ -36,7 +36,7 @@ export default function LoginPage() {
       const response = await loginUser(formData);
       
       // Store token and user data using authService
-      authService.setAuthData(response.token, response.user);
+      authService.setAuthData(response.response, response.user);
       
       // Navigate to dashboard
       navigate('/dashboard');

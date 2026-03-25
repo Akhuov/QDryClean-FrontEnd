@@ -7,7 +7,6 @@ import axiosInstance from '../shared/api/axiosInstance';
 import StatusBadge from '../components/StatusBadge';
 import { getAxiosErrorMessage, parseId } from '../utils/apiHelpers';
 import OrderFormDialog from '../components/orders/OrderFormDialog';
-import OrdersMetrics from '../components/orders/OrdersMetrics';
 import OrdersSearchToolbar from '../components/orders/OrdersSearchToolbar';
 
 export default function OrdersPage() {
@@ -167,10 +166,6 @@ export default function OrdersPage() {
           error={apiError}
         />
 
-        <div className="w-full flex-1">
-          <OrdersMetrics />
-        </div>
-
         <div className="w-full lg:w-auto">
           <OrderFormDialog
             open={isModalOpen}
@@ -182,7 +177,7 @@ export default function OrdersPage() {
           >
             <Button variant="default" className="h-10 w-full lg:w-auto flex items-center gap-2 border border-border">
               <Plus className="h-4 w-4" />
-              Add Order
+              Create Order
             </Button>
           </OrderFormDialog>
         </div>
