@@ -1,4 +1,4 @@
-import { Button } from '../../../components/u   i/button';
+import { Button } from '../../../components/ui/button';
 
 export default function OrderSummaryBar({
   total,
