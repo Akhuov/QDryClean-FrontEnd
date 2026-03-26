@@ -6,8 +6,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '.
 import axiosInstance from '../shared/api/axiosInstance';
 import StatusBadge from '../components/StatusBadge';
 import { getAxiosErrorMessage, parseId } from '../utils/apiHelpers';
-import OrderFormDialog from '../components/orders/OrderFormDialog';
-import OrdersSearchToolbar from '../components/orders/OrdersSearchToolbar';
+import OrderFormDialog from '../features/order-create/ui/OrderFormDialog';
+import OrdersSearchToolbar from '../features/order-create/ui/OrdersSearchToolbar';
 
 export default function OrdersPage() {
   // search input (то, что пользователь печатает)
