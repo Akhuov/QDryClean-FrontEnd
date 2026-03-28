@@ -8,6 +8,8 @@ import LoginPage from '../pages/LoginPage';
 import AuthWrapper from '../components/AuthWrapper';
 import { authService } from '../features/auth/authService';
 import Logo from '../assets/logo-sample.png';
+import { Toaster } from '../components/ui/sonner';
+
 
 function AppContent() {
   const navigate = useNavigate();
@@ -117,20 +119,25 @@ function AppContent() {
   );
 }
 
+
 export default function App() {
   return (
     <Router>
-      <Routes>
-        <Route path="/login" element={<LoginPage />} />
-        <Route
-          path="/*"
-          element={
-            <AuthWrapper>
-              <AppContent />
-            </AuthWrapper>
-          }
-        />
-      </Routes>
+      <>
+        <Routes>
+          <Route path="/login" element={<LoginPage />} />
+          <Route
+            path="/*"
+            element={
+              <AuthWrapper>
+                <AppContent />
+              </AuthWrapper>
+            }
+          />
+        </Routes>
+
+        <Toaster /> {/* 👈 ВОТ ЭТО ДОБАВЬ */}
+      </>
     </Router>
   );
 }
