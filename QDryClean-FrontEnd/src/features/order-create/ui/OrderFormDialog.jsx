@@ -29,7 +29,7 @@ export default function OrderFormDialog({
       open={open}
       onOpenChange={(isOpen) => {
         if (!isOpen) {
-          vm.resetDialogState();
+          vm.resetAllState();
         }
 
         onOpenChange(isOpen);

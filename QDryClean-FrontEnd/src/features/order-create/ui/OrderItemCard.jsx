@@ -1,5 +1,5 @@
 import { forwardRef } from 'react';
-import { Trash2 } from 'lucide-react';
+import { Image as ImageIcon, Trash2 } from 'lucide-react';
 import { Button } from '../../../components/ui/button';
 import {
   AlertDialog,
@@ -13,44 +13,51 @@ import {
   AlertDialogTrigger,
 } from '../../../components/ui/alert-dialog';
 
-const OrderItemCard = forwardRef(({ item, onDelete, formatCurrency }, ref) => {
+const getValue = (value, fallback = 'Не указан') => {
+  if (value === null || value === undefined || value === '') return fallback;
+  return value;
+};
+
+const OrderItemCard = forwardRef(({ item, onDelete, formatCurrency, onPreviewPhoto }, ref) => {
   return (
-    <div ref={ref} className="rounded-xl border border-border bg-card p-4 shadow-sm">
-      <div className="flex items-start justify-between gap-4">
-        <div className="min-w-0">
-          <p className="text-sm text-muted-foreground">
-            Тип: {item.typeName}
+    <div
+      ref={ref}
+      className="w-full rounded-2xl border border-border bg-card p-3 shadow-sm"
+    >
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0 flex-1">
+          <p className="truncate text-xs text-muted-foreground">
+            Тип: {getValue(item.typeName)}
           </p>
 
-          <p className="mt-1 text-lg font-semibold text-foreground">
-            {item.title}
+          <p className="mt-1 truncate text-lg font-semibold leading-tight text-foreground">
+            {getValue(item.title)}
           </p>
 
-          <p className="mt-2 text-sm text-muted-foreground">
-            Цвет: {item.color}
-          </p>
-          <p className="text-sm text-muted-foreground">
-            Бренд: {item.brand}
-          </p>
-          <p className="text-sm text-muted-foreground">
-            Дефекты: {item.defects}
-          </p>
-
-          {item.photoPreview && (
-            <img
-              src={item.photoPreview}
-              alt={item.title}
-              className="mt-3 h-20 w-20 rounded-md border object-cover"
-            />
-          )}
-        </div>
-
-        <div className="flex shrink-0 items-start gap-3">
-          <div className="text-right">
-            <p className="text-xl font-semibold text-foreground">
-              {formatCurrency(item.price)}
+          <div className="mt-2 space-y-1">
+            <p className="truncate text-sm text-muted-foreground">
+              Цвет: {getValue(item.color)}
+            </p>
+            <p className="truncate text-sm text-muted-foreground">
+              Бренд: {getValue(item.brand)}
+            </p>
+            <p className="truncate text-sm text-muted-foreground">
+              Дефекты: {getValue(item.defects, 'Нет заметок')}
             </p>
           </div>
+        </div>
+
+        <div className="flex shrink-0 items-start gap-2">
+          {item.photoPreview && (
+            <Button
+              type="button"
+              size="icon"
+              className="h-9 w-9 rounded-xl"
+              onClick={() => onPreviewPhoto?.(item)}
+            >
+              <ImageIcon className="h-4 w-4" />
+            </Button>
+          )}
 
           <AlertDialog>
             <AlertDialogTrigger asChild>
@@ -58,7 +65,7 @@ const OrderItemCard = forwardRef(({ item, onDelete, formatCurrency }, ref) => {
                 type="button"
                 variant="delete"
                 size="icon"
-                className="text-muted-foreground hover:text-destructive"
+                className="h-9 w-9 rounded-xl text-muted-foreground hover:text-destructive"
               >
                 <Trash2 className="h-4 w-4" />
               </Button>
@@ -84,6 +91,12 @@ const OrderItemCard = forwardRef(({ item, onDelete, formatCurrency }, ref) => {
             </AlertDialogContent>
           </AlertDialog>
         </div>
+      </div>
+
+      <div className="mt-3 border-t border-border pt-2">
+        <p className="text-2xl font-semibold leading-none text-foreground">
+          {formatCurrency(item.price)}
+        </p>
       </div>
     </div>
   );

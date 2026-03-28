@@ -12,14 +12,16 @@ export default function OrderItemsList({
 }) {
   return (
     <div className="max-h-[50vh] space-y-3 overflow-y-auto pr-2">
-      {items.map((item) => (
-        <OrderItemCard
-          key={item.id}
-          item={item}
-          onDelete={onDeleteItem}
-          formatCurrency={formatCurrency}
-        />
-      ))}
+      <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">
+        {items.map((item) => (
+          <OrderItemCard
+            key={item.id}
+            item={item}
+            onDelete={onDeleteItem}
+            formatCurrency={formatCurrency}
+          />
+        ))}
+    </div>
 
       {!isAddingItem ? (
         <button

@@ -1,43 +1,60 @@
-export function getPhoneDigits(value) {
-  return value.replace(/\D/g, '');
+const PREFIX = '+998 ';
+
+export function getPhoneDigits(value = '') {
+  return String(value).replace(/\D/g, '');
 }
 
-export function formatPhoneInput(value) {
-  let digits = getPhoneDigits(value);
+export function formatPhoneInput(value = '') {
+  const stringValue = String(value);
 
-  if (digits.startsWith('998')) {
-    digits = digits.slice(3);
+  if (!stringValue.startsWith(PREFIX)) {
+    return PREFIX;
   }
 
-  digits = digits.slice(0, 9);
+  const digits = stringValue
+    .slice(PREFIX.length)
+    .replace(/\D/g, '')
+    .slice(0, 9);
 
-  let result = '+998';
+  const parts = [];
 
-  if (digits.length > 0) result += ' ' + digits.slice(0, 2);
-  if (digits.length >= 3) result += ' ' + digits.slice(2, 5);
-  if (digits.length >= 6) result += ' ' + digits.slice(5, 7);
-  if (digits.length >= 8) result += ' ' + digits.slice(7, 9);
+  if (digits.length > 0) parts.push(digits.slice(0, 2));
+  if (digits.length > 2) parts.push(digits.slice(2, 5));
+  if (digits.length > 5) parts.push(digits.slice(5, 7));
+  if (digits.length > 7) parts.push(digits.slice(7, 9));
 
-  return result;
+  return PREFIX + parts.join(' ');
 }
 
-export function formatPhoneDisplay(phone) {
-  if (!phone) return '';
+export function formatPhoneDisplay(phone = '') {
+  const digits = getPhoneDigits(phone);
 
-  const digits = phone.replace(/\D/g, '').slice(-9);
+  const localDigits = digits.startsWith('998')
+    ? digits.slice(3, 12)
+    : digits.slice(0, 9);
 
-  return digits.replace(
-    /(\d{2})(\d{3})(\d{2})(\d{2})/,
-    '+998 $1 $2 $3 $4'
-  );
+  const parts = [];
+
+  if (localDigits.length > 0) parts.push(localDigits.slice(0, 2));
+  if (localDigits.length > 2) parts.push(localDigits.slice(2, 5));
+  if (localDigits.length > 5) parts.push(localDigits.slice(5, 7));
+  if (localDigits.length > 7) parts.push(localDigits.slice(7, 9));
+
+  return PREFIX + parts.join(' ');
 }
 
-export function getPhoneNumberForRequest(value) {
-  let digits = value.replace(/\D/g, '');
-
-  if (digits.startsWith('998')) {
-    digits = digits.slice(3);
+export function getPhoneNumberForRequest(value = '') {
+  if (!value.startsWith(PREFIX)) {
+    return '';
   }
 
-  return digits.slice(0, 9);
+  return value
+    .slice(PREFIX.length)
+    .replace(/\D/g, '')
+    .slice(0, 9);
+}
+
+export function isValidPhone(phone = '') {
+  const phoneRegex = /^\+998 \d{2} \d{3} \d{2} \d{2}$/;
+  return phoneRegex.test(phone);
 }

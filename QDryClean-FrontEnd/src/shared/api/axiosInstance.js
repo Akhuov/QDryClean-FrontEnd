@@ -27,11 +27,16 @@ axiosInstance.interceptors.response.use(
       error.code = 'NETWORK_ERROR';
     }
     
-    // Если получили 401 (Unauthorized), но только если есть токен (истекшая сессия)
-    if (error.response?.status === 401 && localStorage.getItem("token")) {
+    // Если получили 401 (Unauthorized) или AuthExpiry - перенаправляем на логин
+    if (error.response?.status === 401 || error.response?.data?.code === 401) {
+      // Очищаем данные аутентификации
       localStorage.removeItem('token');
       localStorage.removeItem('user');
-      window.location.href = '/login';
+      
+      // Перенаправляем на страницу логина
+      if (window.location.pathname !== '/login') {
+        window.location.href = '/login';
+      }
     }
     
     return Promise.reject(error);
