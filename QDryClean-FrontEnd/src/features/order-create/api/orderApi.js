@@ -14,3 +14,8 @@ export async function createOrderApi(payload) {
   const res = await axiosInstance.post('/orders', payload);
   return res.data;
 }
+
+export const deleteOrderApi = async (orderId) => {
+  const response = await axiosInstance.delete(`/orders/${orderId}`);
+  return response.data;
+};

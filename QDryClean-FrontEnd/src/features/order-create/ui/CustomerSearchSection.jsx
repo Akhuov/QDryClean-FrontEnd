@@ -11,36 +11,50 @@ export default function CustomerSearchSection({
   onSearch,
   onKeyDown,
   isSearchDisabled,
+  onOpenCreateCustomer,
+  canCreateCustomer,
 }) {
   return (
     <div className="space-y-2">
-      <Label htmlFor="phone">Phone Number *</Label>
+      <Label htmlFor="customer-phone">Phone Number *</Label>
 
       <div className="flex gap-3">
         <div className="relative flex-1">
-          <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+          <Search className="h-4 w-4 text-muted-foreground absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
           <Input
-            id="phone"
+            id="customer-phone"
             value={phone}
-            onChange={onPhoneChange}
+            onChange={(e) => onPhoneChange(e.target.value)}
             onKeyDown={onKeyDown}
-            className="bg-input-background border-input w-full pl-10"
-            placeholder="+998 90 999 99 99"
-            maxLength={17}
+            placeholder="+998 99 999 99 99"
+            className="pl-10"
           />
         </div>
 
         <Button
           type="button"
           onClick={onSearch}
-          disabled={searchingCustomer || isSearchDisabled}
+          disabled={isSearchDisabled || searchingCustomer}
         >
           {searchingCustomer ? 'Searching...' : 'Search'}
         </Button>
       </div>
 
       {customerError && (
-        <p className="text-sm text-destructive">{customerError}</p>
+        <div className="flex items-center justify-between gap-3">
+          <p className="text-sm text-destructive">{customerError}</p>
+
+          {canCreateCustomer && (
+            <Button
+              type="button"
+              variant="ghost"
+              className="h-auto p-0 text-sm"
+              onClick={onOpenCreateCustomer}
+            >
+              Create customer
+            </Button>
+          )}
+        </div>
       )}
     </div>
   );

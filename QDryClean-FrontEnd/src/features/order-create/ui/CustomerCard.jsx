@@ -13,7 +13,7 @@ export default function CustomerCard({ customer, formatPhoneDisplay }) {
 
           <div>
             <p className="text-lg font-semibold text-foreground">
-              {customer.firstName}
+              {customer.fullName}
             </p>
             <p className="text-sm text-muted-foreground">
               {formatPhoneDisplay(customer.phoneNumber)}

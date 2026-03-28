@@ -8,6 +8,20 @@ import StatusBadge from '../components/StatusBadge';
 import { getAxiosErrorMessage, parseId } from '../utils/apiHelpers';
 import OrderFormDialog from '../features/order-create/ui/OrderFormDialog';
 import OrdersSearchToolbar from '../features/order-create/ui/OrdersSearchToolbar';
+import { deleteOrderApi } from '../features/order-create/api/orderApi';
+import { toast } from 'sonner';
+import {
+  AlertDialogTrigger,
+  AlertDialog,
+  AlertDialogContent,
+  AlertDialogHeader,
+  AlertDialogFooter,
+  AlertDialogTitle,
+  AlertDialogDescription,
+  AlertDialogCancel,
+  AlertDialogAction,
+} from '../components/ui/alert-dialog';
+
 
 export default function OrdersPage() {
   // search input (то, что пользователь печатает)
@@ -90,51 +104,44 @@ export default function OrdersPage() {
     setPage(1);
   };
 
+  const handleDeleteOrder = async (orderId) => {
+    try {
+      const data = await deleteOrderApi(orderId);
+
+      if (data.code === 0) {
+        toast.success('Order deleted successfully');
+
+        // 👉 обновляем список
+        fetchOrders({
+          page: paged.page,
+          q: searchQuery,
+        });
+
+        return;
+      }
+
+      toast.error(data.message || 'Failed to delete order');
+    } catch (error) {
+      toast.error(
+        error.response?.data?.message || 'Failed to delete order'
+      );
+    }
+  };
+
+  const handleOrderDialogOpenChange = async (isOpen) => {
+    setIsModalOpen(isOpen);
+
+    if (!isOpen) {
+      await fetchOrders({
+        page: paged.page,
+        q: searchQuery,
+      });
+    }
+  };
+
   const handleSearch = () => {
     setPage(1);
     setAppliedSearch(searchQuery.trim());
-  };
-
-  const handleCreateOrder = async () => {
-    if (!newOrder.customerId || !newOrder.receiptNumber) {
-      alert('Please fill in required fields: customerId, receiptNumber');
-      return;
-    }
-
-    try {
-      const payload = {
-        customerId: Number(newOrder.customerId),
-        receiptNumber: Number(newOrder.receiptNumber),
-        processStatus: Number(newOrder.processStatus),
-        expectedCompletionDate: newOrder.expectedCompletionDate || null,
-        notes: newOrder.notesText
-          ? newOrder.notesText.split('\n').map((s) => s.trim()).filter(Boolean)
-          : [],
-        items: [],
-      };
-
-      const res = await axiosInstance.post('/orders', payload);
-
-      if (res.data?.code !== 0) {
-        throw new Error(res.data?.message || 'Create order failed');
-      }
-
-      setIsModalOpen(false);
-      setNewOrder({
-        customerId: '',
-        receiptNumber: '',
-        processStatus: 0,
-        expectedCompletionDate: '',
-        notesText: '',
-      });
-
-      // перезагрузим текущую страницу с текущим appliedSearch
-      fetchOrders({ page, q: appliedSearch });
-
-      alert('Order created successfully!');
-    } catch (err) {
-      alert(getAxiosErrorMessage(err));
-    }
   };
 
   // Таблица: тут уже НЕ делаем дополнительный фильтр, чтобы не "двойной фильтрации"
@@ -169,10 +176,9 @@ export default function OrdersPage() {
         <div className="w-full lg:w-auto">
           <OrderFormDialog
             open={isModalOpen}
-            onOpenChange={setIsModalOpen}
+            onOpenChange={handleOrderDialogOpenChange}
             order={newOrder}
             onChange={setNewOrder}
-            onSubmit={handleCreateOrder}
             loading={loading}
           >
             <Button variant="default" className="h-10 w-full lg:w-auto flex items-center gap-2 border border-border">
@@ -227,20 +233,58 @@ export default function OrdersPage() {
                     </TableCell>
                     <TableCell className="text-right">
                       <div className="flex items-center justify-end gap-2">
-                        <Button size="sm" className="h-8 w-8 p-0 hover:bg-muted" title="View">
+                        <Button
+                          type="button"
+                          size="sm"
+                          className="h-8 w-8 p-0 hover:bg-muted"
+                          title="View"
+                        >
                           <Eye className="w-4 h-4 text-muted-foreground" />
                         </Button>
-                        <Button size="sm" className="h-8 w-8 p-0 hover:bg-muted" title="Edit">
+
+                        <Button
+                          type="button"
+                          size="sm"
+                          className="h-8 w-8 p-0 hover:bg-muted"
+                          title="Edit"
+                        >
                           <Edit className="w-4 h-4 text-muted-foreground" />
                         </Button>
-                        <Button
-                          variant="delete"
-                          size="sm"
-                          className="h-8 w-8 p-0"
-                          title="Delete"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </Button>
+
+                        <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                            <Button
+                              type="button"
+                              variant="delete"
+                              size="sm"
+                              className="h-8 w-8 p-0"
+                              title="Delete"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </Button>
+                          </AlertDialogTrigger>
+
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>Delete order?</AlertDialogTitle>
+                              <AlertDialogDescription>
+                                This action cannot be undone.
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+
+                            <AlertDialogFooter>
+                              <AlertDialogCancel type="button">Cancel</AlertDialogCancel>
+                              <AlertDialogAction
+                                type="button"
+                                onClick={() => {
+                                  handleDeleteOrder(order.id);
+                                }}
+                              >
+                                Delete
+                              </AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
                       </div>
                     </TableCell>
                   </TableRow>

@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { EMPTY_NEW_ITEM } from './constants';
 import { formatPhoneInput, getPhoneNumberForRequest } from '../lib/phone';
-import { fetchItemTypesApi, searchCustomerByPhoneApi } from '../api/orderCreateApi';
+import { fetchItemTypesApi, searchCustomerByPhoneApi } from '../api/orderApi';
 import { buildCreateOrderPayload, mapNewItemToOrderItem } from '../lib/orderCreateMappers';
 
 export function useOrderCreateDialog() {
@@ -10,6 +10,7 @@ export function useOrderCreateDialog() {
   const [isAddingItem, setIsAddingItem] = useState(false);
   const [newItem, setNewItem] = useState(EMPTY_NEW_ITEM);
 
+  const [canCreateCustomer, setCanCreateCustomer] = useState(false);
   const [customer, setCustomer] = useState(null);
   const [searchingCustomer, setSearchingCustomer] = useState(false);
   const [customerError, setCustomerError] = useState('');
@@ -31,13 +32,14 @@ export function useOrderCreateDialog() {
     return items.reduce((sum, item) => sum + item.price, 0) + (isAddingItem ? newItemPrice : 0);
   }, [items, isAddingItem, newItemPrice]);
 
-  const handlePhoneChange = (e) => {
-    setPhone(formatPhoneInput(e.target.value));
+  const handlePhoneChange = (value) => {
+    setPhone(formatPhoneInput(value));
   };
 
   const resetCustomerSearchState = () => {
     setCustomer(null);
     setCustomerError('');
+    setCanCreateCustomer(false);
   };
 
   const clearNewItemPhoto = () => {
@@ -101,18 +103,25 @@ export function useOrderCreateDialog() {
 
       if (data.code === 0) {
         setCustomer(data.response);
+        setCanCreateCustomer(false);
         return;
       }
 
       setCustomerError(data.message || 'Ошибка поиска клиента');
     } catch (error) {
       setCustomer(null);
+
       const data = error.response?.data;
 
-      if (data?.code === 1000) {
+      if (data?.code === 1001) {
+        setCustomerError(data.message || 'Customer with this phone number does not exist');
+        setCanCreateCustomer(true);
+      } else if (data?.code === 1000) {
         setCustomerError(data.message);
+        setCanCreateCustomer(false);
       } else {
         setCustomerError(data?.message || 'Ошибка соединения с сервером');
+        setCanCreateCustomer(false);
       }
     } finally {
       setSearchingCustomer(false);
@@ -198,8 +207,9 @@ export function useOrderCreateDialog() {
   };
 
   const buildPayload = () => {
-    if (!customer) return null;
-    return buildCreateOrderPayload(customer, phone, items);
+    if (!customer || items.length === 0) return null;
+
+    return buildCreateOrderPayload(customer, items);
   };
 
   useEffect(() => {
@@ -223,10 +233,10 @@ export function useOrderCreateDialog() {
   return {
     phone,
     setPhone,
+    setCustomer,
     items,
     customer,
     searchingCustomer,
-    customerError,
     itemTypes,
     itemTypesLoading,
     itemTypesError,
@@ -238,6 +248,7 @@ export function useOrderCreateDialog() {
     total,
     itemsEndRef,
     fileInputRef,
+    canCreateCustomer,
     handlePhoneChange,
     handleSearchCustomer,
     handleStartAddItem,
@@ -247,6 +258,11 @@ export function useOrderCreateDialog() {
     handlePhotoChange,
     handleRemovePhoto,
     buildPayload,
-    resetAllState,
+    customerError,
+    setCustomerError,
+    setCustomer,
+    canCreateCustomer,
+    setCanCreateCustomer,
+    resetAllState
   };
 }

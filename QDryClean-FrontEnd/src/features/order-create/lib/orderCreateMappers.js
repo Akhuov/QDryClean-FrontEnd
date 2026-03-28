@@ -14,10 +14,9 @@ export function mapNewItemToOrderItem(newItem, selectedItemType) {
   };
 }
 
-export function buildCreateOrderPayload(customer, phone, items) {
+export function buildCreateOrderPayload(customer, items) {
   return {
     customerId: customer.id,
-    phoneNumber: customer.phoneNumber || phone,
     items: items.map((item) => ({
       itemTypeId: item.typeId,
       colour: item.color,
