@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '../../../components/ui/dialog';
 import CustomerCreateForm from './CustomerCreateForm';
 import { useCustomerCreateDialog } from '../model/useCustomerCreateDialog';
+import { toast } from 'sonner';
 
 export default function CustomerCreateDialog({
   open,
@@ -26,6 +27,9 @@ export default function CustomerCreateDialog({
     const createdCustomer = await onSubmit(payload);
 
     if (createdCustomer) {
+      toast.success('Customer created successfully', {
+        description: 'The customer has been saved.',
+      });
       vm.resetForm();
     }
   };
