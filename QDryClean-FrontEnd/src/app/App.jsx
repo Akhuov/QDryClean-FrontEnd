@@ -1,5 +1,6 @@
-import { BrowserRouter as Router, Routes, Route, useNavigate, useLocation } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, useNavigate, useLocation, Navigate } from 'react-router-dom';
 import { LayoutDashboard, ShoppingCart, Package, Users, Settings, LogOut } from 'lucide-react';
+import { useEffect } from 'react';
 import DashboardPage from '../pages/DashboardPage';
 import OrdersPage from '../pages/OrdersPage';
 import PackagesPage from '../pages/PackagesPage';
@@ -7,6 +8,7 @@ import ClientsPage from '../pages/ClientsPage';
 import LoginPage from '../pages/LoginPage';
 import AuthWrapper from '../components/AuthWrapper';
 import { authService } from '../features/auth/authService';
+import { setNavigateFunction } from '../shared/api/axiosInstance';
 import Logo from '../assets/logo-sample.png';
 import { Toaster } from '../components/ui/sonner';
 
@@ -14,6 +16,11 @@ import { Toaster } from '../components/ui/sonner';
 function AppContent() {
   const navigate = useNavigate();
   const location = useLocation();
+
+  // Устанавливаем функцию навигации для axios interceptor
+  useEffect(() => {
+    setNavigateFunction(navigate);
+  }, [navigate]);
 
   // Определяем текущую страницу по URL
   const getCurrentPage = () => {

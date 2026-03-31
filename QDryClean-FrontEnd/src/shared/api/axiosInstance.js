@@ -9,6 +9,14 @@ const axiosInstance = axios.create({
   timeout: 10000, // 10 секунд таймаут
 });
 
+// Функция для перенаправления на логин (будет установлена из React)
+let navigateToLogin = null;
+
+// Экспортируем функцию для установки навигации из React компонентов
+export const setNavigateFunction = (navigateFn) => {
+  navigateToLogin = navigateFn;
+};
+
 // Добавляем интерцептор для подстановки токена
 axiosInstance.interceptors.request.use((config) => {
   const token = localStorage.getItem("token"); // токен сохраняется после логина
@@ -34,8 +42,15 @@ axiosInstance.interceptors.response.use(
       localStorage.removeItem('user');
       
       // Перенаправляем на страницу логина
-      if (window.location.pathname !== '/login') {
-        window.location.href = '/login';
+      const currentPath = window.location.pathname;
+      if (currentPath !== '/login') {
+        // Используем React Router навигацию если доступна, иначе fallback
+        if (navigateToLogin) {
+          navigateToLogin('/login');
+        } else {
+          // Fallback: используем replace чтобы не добавлять в историю
+          window.location.replace('/login');
+        }
       }
     }
     
