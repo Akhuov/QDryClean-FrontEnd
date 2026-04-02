@@ -16,7 +16,7 @@ export default function CustomerCreateDialog({
 
   useEffect(() => {
     if (open) {
-      vm.setPhone(initialPhone || '+998 ');
+      vm.setPhone(initialPhone);
     }
   }, [open, initialPhone]);
 

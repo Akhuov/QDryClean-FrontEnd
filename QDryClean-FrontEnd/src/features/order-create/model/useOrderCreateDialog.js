@@ -5,7 +5,7 @@ import { fetchItemTypesApi, searchCustomerByPhoneApi } from '../api/orderApi';
 import { buildCreateOrderPayload, mapNewItemToOrderItem } from '../lib/orderCreateMappers';
 
 export function useOrderCreateDialog() {
-  const [phone, setPhone] = useState('');
+  const [phone, setPhone] = useState('+998 ');
   const [items, setItems] = useState([]);
   const [isAddingItem, setIsAddingItem] = useState(false);
   const [newItem, setNewItem] = useState(EMPTY_NEW_ITEM);
@@ -33,7 +33,8 @@ export function useOrderCreateDialog() {
   }, [items, isAddingItem, newItemPrice]);
 
   const handlePhoneChange = (value) => {
-    setPhone(formatPhoneInput(value));
+    const formatted = formatPhoneInput(value);
+    setPhone(formatted);
   };
 
   const resetCustomerSearchState = () => {
@@ -49,7 +50,7 @@ export function useOrderCreateDialog() {
   };
 
   const resetAllState = () => {
-    setPhone('');
+    setPhone('+998 ');
     setCustomer(null);
     setCustomerError('');
     setItems([]);
