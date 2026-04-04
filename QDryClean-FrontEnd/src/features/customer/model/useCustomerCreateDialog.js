@@ -4,7 +4,7 @@ import {
   getPhoneDigits,
   getPhoneNumberForRequest,
   isValidPhone,
-} from '../../order-create/lib/phone';
+} from '../../order/lib/phone';
 
 const INITIAL_ERRORS = {
   fullName: '',

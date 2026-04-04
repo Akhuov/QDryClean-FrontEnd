@@ -6,9 +6,9 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '.
 import axiosInstance from '../shared/api/axiosInstance';
 import StatusBadge from '../components/StatusBadge';
 import { getAxiosErrorMessage, parseId } from '../utils/apiHelpers';
-import OrderFormDialog from '../features/order-create/ui/OrderFormDialog';
-import OrdersSearchToolbar from '../features/order-create/ui/OrdersSearchToolbar';
-import { deleteOrderApi } from '../features/order-create/api/orderApi';
+import OrderFormDialog from '../features/order/ui/OrderFormDialog';
+import OrdersSearchToolbar from '../features/order/ui/OrdersSearchToolbar';
+import { deleteOrderApi, getOrderByIdApi } from '../features/order/api/orderApi';
 import { toast } from 'sonner';
 import {
   AlertDialogTrigger,
@@ -41,16 +41,13 @@ export default function OrdersPage() {
     totalCount: 0,
     totalPages: 1,
   });
+  const [editLoading, setEditLoading] = useState(false);
 
   // modal form
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [newOrder, setNewOrder] = useState({
-    customerId: '',
-    receiptNumber: '',
-    processStatus: 0,
-    expectedCompletionDate: '',
-    notesText: '',
-  });
+  const [dialogMode, setDialogMode] = useState('create'); // 'create' | 'edit'
+  const [selectedOrder, setSelectedOrder] = useState(null);
+
 
   const pageSize = 10;
 
@@ -67,7 +64,7 @@ export default function OrdersPage() {
           params: {
             page: pageArg,
             pageSize,
-            search: trimmed || undefined, // ВОТ ЭТО НУЖНО
+            search: trimmed || undefined,
           },
         });
 
@@ -132,10 +129,43 @@ export default function OrdersPage() {
     setIsModalOpen(isOpen);
 
     if (!isOpen) {
+      setDialogMode('create');
+      setSelectedOrder(null);
+
       await fetchOrders({
         page: paged.page,
-        q: searchQuery,
+        q: appliedSearch,
       });
+    }
+  };
+
+  const handleCreateOrder = () => {
+    setDialogMode('create');
+    setSelectedOrder(null);
+    setIsModalOpen(true);
+  };
+
+  const handleEditOrder = async (orderId) => {
+    try {
+      setEditLoading(true);
+
+      const data = await getOrderByIdApi(orderId);
+
+      if (data.code !== 0 || !data.response) {
+        throw new Error(data.message || 'Failed to load order');
+      }
+
+      setDialogMode('edit');
+      setSelectedOrder(data.response);
+      setIsModalOpen(true);
+    } catch (error) {
+      toast.error(
+        error.response?.data?.message ||
+        error.message ||
+        'Failed to load order details'
+      );
+    } finally {
+      setEditLoading(false);
     }
   };
 
@@ -175,13 +205,17 @@ export default function OrdersPage() {
 
         <div className="w-full lg:w-auto">
           <OrderFormDialog
+            mode={dialogMode}
             open={isModalOpen}
             onOpenChange={handleOrderDialogOpenChange}
-            order={newOrder}
-            onChange={setNewOrder}
-            loading={loading}
+            loading={editLoading}
+            initialOrder={selectedOrder}
           >
-            <Button variant="default" className="h-10 w-full lg:w-auto flex items-center gap-2 border border-border">
+            <Button 
+              variant="default" 
+              className="h-10 w-full lg:w-auto flex items-center gap-2 border border-border"
+              onClick={handleCreateOrder}
+            >
               <Plus className="h-4 w-4" />
               Create Order
             </Button>
@@ -210,6 +244,7 @@ export default function OrdersPage() {
                   <TableHead>Expected Date</TableHead>
                   <TableHead className="text-center">Items</TableHead>
                   <TableHead className="text-center">Status</TableHead>
+                  <TableHead className="text-right">Total Cost</TableHead>
                   <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
               </TableHeader>
@@ -217,7 +252,7 @@ export default function OrdersPage() {
               <TableBody>
                 {orders.map((order) => (
                   <TableRow key={order.id}>
-                    <TableCell className="text-muted-foreground">{order.customerName}</TableCell>
+                    <TableCell className="text-muted-foreground">{order.customer?.fullName}</TableCell>
                     <TableCell className="text-muted-foreground">{order.receiptNumber}</TableCell>
                     <TableCell className="text-muted-foreground">
                       {order.createdAt ? new Date(order.createdAt).toLocaleDateString() : '—'}
@@ -230,6 +265,9 @@ export default function OrdersPage() {
                     </TableCell>
                     <TableCell className="text-center">
                       <StatusBadge status={order.processStatus} />
+                    </TableCell>
+                    <TableCell className="text-right">
+                      {order.totalCost}
                     </TableCell>
                     <TableCell className="text-right">
                       <div className="flex items-center justify-end gap-2">
@@ -247,6 +285,7 @@ export default function OrdersPage() {
                           size="sm"
                           className="h-8 w-8 p-0 hover:bg-muted"
                           title="Edit"
+                          onClick={() => handleEditOrder(order.id)}
                         >
                           <Edit className="w-4 h-4 text-muted-foreground" />
                         </Button>
