@@ -4,7 +4,7 @@ import { formatPhoneInput, getPhoneNumberForRequest } from '../lib/phone';
 import { fetchItemTypesApi, searchCustomerByPhoneApi } from '../api/orderApi';
 import { buildCreateOrderPayload, mapNewItemToOrderItem } from '../lib/orderCreateMappers';
 
-export function useOrderCreateDialog() {
+export function useOrderDialog() {
   const [phone, setPhone] = useState('+998 ');
   const [items, setItems] = useState([]);
   const [isAddingItem, setIsAddingItem] = useState(false);
@@ -234,8 +234,8 @@ export function useOrderCreateDialog() {
   return {
     phone,
     setPhone,
-    setCustomer,
     items,
+    setItems,
     customer,
     searchingCustomer,
     itemTypes,
@@ -250,6 +250,7 @@ export function useOrderCreateDialog() {
     itemsEndRef,
     fileInputRef,
     canCreateCustomer,
+    customerError,
     handlePhoneChange,
     handleSearchCustomer,
     handleStartAddItem,
@@ -259,10 +260,8 @@ export function useOrderCreateDialog() {
     handlePhotoChange,
     handleRemovePhoto,
     buildPayload,
-    customerError,
-    setCustomerError,
     setCustomer,
-    canCreateCustomer,
+    setCustomerError,
     setCanCreateCustomer,
     resetAllState
   };

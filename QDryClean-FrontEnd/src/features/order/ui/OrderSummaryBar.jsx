@@ -5,6 +5,7 @@ export default function OrderSummaryBar({
   loading,
   onCreateOrder,
   formatCurrency,
+  actionText = 'Create Order',
 }) {
   return (
     <div className="flex flex-col gap-4 border-t pt-4 sm:flex-row sm:items-center sm:justify-between">
@@ -17,7 +18,7 @@ export default function OrderSummaryBar({
         disabled={loading}
         className="min-w-[180px]"
       >
-        {loading ? 'Creating...' : 'Create Order'}
+        {loading ? 'Saving...' : actionText}
       </Button>
     </div>
   );

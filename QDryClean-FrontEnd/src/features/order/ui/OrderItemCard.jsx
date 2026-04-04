@@ -19,6 +19,13 @@ const getValue = (value, fallback = 'Не указан') => {
 };
 
 const OrderItemCard = forwardRef(({ item, onDelete, formatCurrency, onPreviewPhoto }, ref) => {
+  const typeName = item.typeName ?? item.itemTypeName ?? '';
+  const title = item.title ?? item.itemTypeName ?? item.typeName ?? '';
+  const color = item.color ?? item.colour ?? '';
+  const brand = item.brand ?? item.brandName ?? '';
+  const defects = item.defects ?? item.description ?? '';
+  const price = item.price ?? item.cost ?? 0;
+
   return (
     <div
       ref={ref}
@@ -27,22 +34,22 @@ const OrderItemCard = forwardRef(({ item, onDelete, formatCurrency, onPreviewPho
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0 flex-1">
           <p className="truncate text-xs text-muted-foreground">
-            Тип: {getValue(item.typeName)}
+            Тип: {getValue(typeName)}
           </p>
 
           <p className="mt-1 truncate text-lg font-semibold leading-tight text-foreground">
-            {getValue(item.title)}
+            {getValue(title)}
           </p>
 
           <div className="mt-2 space-y-1">
             <p className="truncate text-sm text-muted-foreground">
-              Цвет: {getValue(item.color)}
+              Цвет: {getValue(color)}
             </p>
             <p className="truncate text-sm text-muted-foreground">
-              Бренд: {getValue(item.brand)}
+              Бренд: {getValue(brand)}
             </p>
             <p className="truncate text-sm text-muted-foreground">
-              Дефекты: {getValue(item.defects, 'Нет заметок')}
+              Дефекты: {getValue(defects, 'Нет заметок')}
             </p>
           </div>
         </div>
@@ -95,7 +102,7 @@ const OrderItemCard = forwardRef(({ item, onDelete, formatCurrency, onPreviewPho
 
       <div className="mt-3 border-t border-border pt-2">
         <p className="text-2xl font-semibold leading-none text-foreground">
-          {formatCurrency(item.price)}
+          {formatCurrency(price)}
         </p>
       </div>
     </div>

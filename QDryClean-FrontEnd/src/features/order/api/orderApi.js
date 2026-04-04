@@ -15,6 +15,16 @@ export async function createOrderApi(payload) {
   return res.data;
 }
 
+export const updateOrderApi = async (id, payload) => {
+  const { data } = await axiosInstance.put(`/orders/${id}`, payload);
+  return data;
+};
+
+export const getOrderByIdApi = async (id) => {
+  const { data } = await axiosInstance.get(`/orders/${id}`);
+  return data;
+};
+
 export const deleteOrderApi = async (orderId) => {
   const response = await axiosInstance.delete(`/orders/${orderId}`);
   return response.data;
