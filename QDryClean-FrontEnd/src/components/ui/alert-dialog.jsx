@@ -106,7 +106,7 @@ function AlertDialogDescription({ className, ...props }) {
 function AlertDialogAction({ className, ...props }) {
   return (
     <AlertDialogPrimitive.Action
-      className={cn(buttonVariants({ variant: "delete" }), className)}
+      className={cn(buttonVariants({ variant: "default" }), className)}
       {...props}
     />
   );

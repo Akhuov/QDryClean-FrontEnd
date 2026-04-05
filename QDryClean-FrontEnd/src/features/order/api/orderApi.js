@@ -29,3 +29,12 @@ export const deleteOrderApi = async (orderId) => {
   const response = await axiosInstance.delete(`/orders/${orderId}`);
   return response.data;
 };
+
+export const completeOrderApi = async (orderId) => {
+  const response = await axiosInstance.patch(`/orders/${orderId}`, {
+    processStatus: 3,
+    note: 'Order Completed!',
+  });
+
+  return response.data;
+};

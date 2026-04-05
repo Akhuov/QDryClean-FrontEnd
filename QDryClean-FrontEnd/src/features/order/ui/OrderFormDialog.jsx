@@ -16,7 +16,7 @@ import { formatCurrency } from '../lib/currency';
 import { formatPhoneDisplay, getPhoneNumberForRequest } from '../lib/phone';
 
 export default function OrderFormDialog({
-  mode = 'create', // 'create' | 'edit'
+  mode = 'create',
   open,
   onOpenChange,
   loading,
@@ -31,6 +31,9 @@ export default function OrderFormDialog({
 
   const title = isEditMode ? 'Edit Order' : 'Create Order';
   const submitText = isEditMode ? 'Save Changes' : 'Create Order';
+  const dialogDescription = isEditMode 
+    ? 'Edit existing order details, items, and customer information' 
+    : 'Create new order with customer details and items';
 
   useEffect(() => {
     if (!open) return;
@@ -171,11 +174,17 @@ export default function OrderFormDialog({
         <DialogContent
           className="sm:max-w-[920px] bg-white"
           onInteractOutside={(e) => e.preventDefault()}
+          aria-describedby={dialogDescription ? 'dialog-description' : undefined}
         >
           <DialogHeader>
             <DialogTitle className="text-foreground text-[20px] font-semibold">
               {title}
             </DialogTitle>
+            {dialogDescription && (
+              <p id="dialog-description" className="sr-only">
+                {dialogDescription}
+              </p>
+            )}
           </DialogHeader>
 
           <div className="space-y-6 py-2">

@@ -1,14 +1,21 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { Plus, Edit, Trash2, Eye, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Plus, Edit, Trash2, Eye, ChevronLeft, ChevronRight, Check } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
 import { Button } from '../components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../components/ui/table';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '../components/ui/select';
 import axiosInstance from '../shared/api/axiosInstance';
 import StatusBadge from '../components/StatusBadge';
 import { getAxiosErrorMessage, parseId } from '../utils/apiHelpers';
 import OrderFormDialog from '../features/order/ui/OrderFormDialog';
 import OrdersSearchToolbar from '../features/order/ui/OrdersSearchToolbar';
-import { deleteOrderApi, getOrderByIdApi } from '../features/order/api/orderApi';
+import { deleteOrderApi, getOrderByIdApi, completeOrderApi } from '../features/order/api/orderApi';
 import { toast } from 'sonner';
 import {
   AlertDialogTrigger,
@@ -22,16 +29,15 @@ import {
   AlertDialogAction,
 } from '../components/ui/alert-dialog';
 
+const PAGE_SIZE_OPTIONS = [10, 25, 50, 100];
 
 export default function OrdersPage() {
-  // search input (то, что пользователь печатает)
   const [searchQuery, setSearchQuery] = useState('');
-  // appliedSearch (то, что реально применили кнопкой Search)
   const [appliedSearch, setAppliedSearch] = useState('');
 
   const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
 
-  // api state
   const [loading, setLoading] = useState(false);
   const [apiError, setApiError] = useState('');
   const [paged, setPaged] = useState({
@@ -43,61 +49,73 @@ export default function OrdersPage() {
   });
   const [editLoading, setEditLoading] = useState(false);
 
-  // modal form
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [dialogMode, setDialogMode] = useState('create'); // 'create' | 'edit'
+  const [dialogMode, setDialogMode] = useState('create');
   const [selectedOrder, setSelectedOrder] = useState(null);
 
-
-  const pageSize = 10;
-
   const fetchOrders = useCallback(
-    async ({ page: pageArg, q }) => {
+    async ({ page: pageArg, q, pageSize: pageSizeArg }) => {
       setLoading(true);
       setApiError('');
 
       try {
         const trimmed = String(q ?? '').trim();
 
-        // ✅ список + search
         const res = await axiosInstance.get('/orders', {
           params: {
             page: pageArg,
-            pageSize,
+            pageSize: pageSizeArg,
             search: trimmed || undefined,
           },
         });
 
-        if (res.data?.code !== 0) throw new Error(res.data?.message || 'API error');
+        if (res.data?.code !== 0) {
+          throw new Error(res.data?.message || 'API error');
+        }
 
         const resp = res.data.response ?? res.data.responseBody;
 
         setPaged({
           items: resp?.items ?? [],
           page: resp?.page ?? pageArg,
-          pageSize: resp?.pageSize ?? pageSize,
+          pageSize: resp?.pageSize ?? pageSizeArg,
           totalCount: resp?.totalCount ?? 0,
           totalPages: resp?.totalPages ?? 1,
         });
       } catch (err) {
         setApiError(getAxiosErrorMessage(err));
-        setPaged((p) => ({ ...p, items: [], page: 1, totalCount: 0, totalPages: 1 }));
+        setPaged((prev) => ({
+          ...prev,
+          items: [],
+          page: 1,
+          totalCount: 0,
+          totalPages: 1,
+        }));
       } finally {
         setLoading(false);
       }
     },
-    [pageSize]
+    []
   );
 
-  // Загружаем при старте и при смене page (по appliedSearch)
   useEffect(() => {
-    fetchOrders({ page, q: appliedSearch });
-  }, [fetchOrders, page, appliedSearch]);
+    fetchOrders({ page, q: appliedSearch, pageSize });
+  }, [fetchOrders, page, appliedSearch, pageSize]);
 
-  const handleSearchChange = (value) => setSearchQuery(value);
+  const handleSearchChange = (value) => {
+    setSearchQuery(value);
+  };
+
   const handleSearchClear = () => {
     setSearchQuery('');
     setAppliedSearch('');
+    setPage(1);
+  };
+
+  const handlePageSizeChange = (value) => {
+    const nextPageSize = Number(value);
+
+    setPageSize(nextPageSize);
     setPage(1);
   };
 
@@ -108,10 +126,10 @@ export default function OrdersPage() {
       if (data.code === 0) {
         toast.success('Order deleted successfully');
 
-        // 👉 обновляем список
         fetchOrders({
-          page: paged.page,
-          q: searchQuery,
+          page: page,
+          q: appliedSearch,
+          pageSize,
         });
 
         return;
@@ -119,9 +137,7 @@ export default function OrdersPage() {
 
       toast.error(data.message || 'Failed to delete order');
     } catch (error) {
-      toast.error(
-        error.response?.data?.message || 'Failed to delete order'
-      );
+      toast.error(error.response?.data?.message || 'Failed to delete order');
     }
   };
 
@@ -133,8 +149,9 @@ export default function OrdersPage() {
       setSelectedOrder(null);
 
       await fetchOrders({
-        page: paged.page,
+        page,
         q: appliedSearch,
+        pageSize,
       });
     }
   };
@@ -143,6 +160,30 @@ export default function OrdersPage() {
     setDialogMode('create');
     setSelectedOrder(null);
     setIsModalOpen(true);
+  };
+
+  const handleCompleteOrder = async (orderId) => {
+    try {
+      const data = await completeOrderApi(orderId);
+
+      if (data.code === 0) {
+        toast.success('Order completed successfully');
+
+        await fetchOrders({
+          page,
+          q: appliedSearch,
+          pageSize,
+        });
+
+        return;
+      }
+
+      toast.error(data.message || 'Failed to complete order');
+    } catch (error) {
+      toast.error(
+        error.response?.data?.message || error.message || 'Failed to complete order'
+      );
+    }
   };
 
   const handleEditOrder = async (orderId) => {
@@ -161,8 +202,8 @@ export default function OrdersPage() {
     } catch (error) {
       toast.error(
         error.response?.data?.message ||
-        error.message ||
-        'Failed to load order details'
+          error.message ||
+          'Failed to load order details'
       );
     } finally {
       setEditLoading(false);
@@ -174,7 +215,6 @@ export default function OrdersPage() {
     setAppliedSearch(searchQuery.trim());
   };
 
-  // Таблица: тут уже НЕ делаем дополнительный фильтр, чтобы не "двойной фильтрации"
   const orders = useMemo(() => paged.items ?? [], [paged.items]);
 
   const isIdSearch = parseId(appliedSearch) !== null;
@@ -182,9 +222,27 @@ export default function OrdersPage() {
   const canPrev = !isIdSearch && page > 1;
   const canNext = !isIdSearch && page < (paged.totalPages || 1);
 
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      const trimmed = searchQuery.trim();
+
+      if (trimmed !== appliedSearch) {
+        setPage(1);
+        setAppliedSearch(trimmed);
+      }
+
+      if (!trimmed && appliedSearch !== '') {
+        setPage(1);
+        setAppliedSearch('');
+      }
+    }, 400);
+
+    return () => clearTimeout(timer);
+  }, [searchQuery, appliedSearch]);
+
+
   return (
     <div className="p-8 space-y-8">
-      {/* Header */}
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-semibold text-foreground">Orders</h1>
@@ -192,7 +250,6 @@ export default function OrdersPage() {
         </div>
       </div>
 
-      {/* Top toolbar */}
       <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
         <OrdersSearchToolbar
           searchQuery={searchQuery}
@@ -211,8 +268,8 @@ export default function OrdersPage() {
             loading={editLoading}
             initialOrder={selectedOrder}
           >
-            <Button 
-              variant="default" 
+            <Button
+              variant="default"
               className="h-10 w-full lg:w-auto flex items-center gap-2 border border-border"
               onClick={handleCreateOrder}
             >
@@ -223,12 +280,28 @@ export default function OrdersPage() {
         </div>
       </div>
 
-      {/* Orders Table */}
       <Card className="border-border shadow-sm">
-        <CardHeader>
-          <CardTitle className="text-foreground">
-            Orders
-          </CardTitle>
+        <CardHeader className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <CardTitle className="text-foreground">Orders</CardTitle>
+
+          <div className="flex items-center gap-3">
+            <span className="text-sm text-muted-foreground whitespace-nowrap">
+              Table Size
+            </span>
+
+            <Select value={String(pageSize)} onValueChange={handlePageSizeChange}>
+              <SelectTrigger className="w-[100px]">
+                <SelectValue placeholder="Size" />
+              </SelectTrigger>
+              <SelectContent>
+                {PAGE_SIZE_OPTIONS.map((size) => (
+                  <SelectItem key={size} value={String(size)}>
+                    {size}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
         </CardHeader>
 
         <CardContent>
@@ -252,13 +325,21 @@ export default function OrdersPage() {
               <TableBody>
                 {orders.map((order) => (
                   <TableRow key={order.id}>
-                    <TableCell className="text-muted-foreground">{order.customer?.fullName}</TableCell>
-                    <TableCell className="text-muted-foreground">{order.receiptNumber}</TableCell>
                     <TableCell className="text-muted-foreground">
-                      {order.createdAt ? new Date(order.createdAt).toLocaleDateString() : '—'}
+                      {order.customer?.fullName}
                     </TableCell>
                     <TableCell className="text-muted-foreground">
-                      {order.expectedCompletionDate ? new Date(order.expectedCompletionDate).toLocaleDateString() : '—'}
+                      {order.receiptNumber}
+                    </TableCell>
+                    <TableCell className="text-muted-foreground">
+                      {order.createdAt
+                        ? new Date(order.createdAt).toLocaleDateString()
+                        : '—'}
+                    </TableCell>
+                    <TableCell className="text-muted-foreground">
+                      {order.expectedCompletionDate
+                        ? new Date(order.expectedCompletionDate).toLocaleDateString()
+                        : '—'}
                     </TableCell>
                     <TableCell className="text-center text-foreground">
                       {order.itemsCount}
@@ -266,9 +347,8 @@ export default function OrdersPage() {
                     <TableCell className="text-center">
                       <StatusBadge status={order.processStatus} />
                     </TableCell>
-                    <TableCell className="text-right">
-                      {order.totalCost}
-                    </TableCell>
+                    <TableCell className="text-right">{order.totalCost}</TableCell>
+
                     <TableCell className="text-right">
                       <div className="flex items-center justify-end gap-2">
                         <Button
@@ -280,15 +360,54 @@ export default function OrdersPage() {
                           <Eye className="w-4 h-4 text-muted-foreground" />
                         </Button>
 
-                        <Button
-                          type="button"
-                          size="sm"
-                          className="h-8 w-8 p-0 hover:bg-muted"
-                          title="Edit"
-                          onClick={() => handleEditOrder(order.id)}
-                        >
-                          <Edit className="w-4 h-4 text-muted-foreground" />
-                        </Button>
+                        {order.processStatus === 0 && (
+                          <Button
+                            type="button"
+                            size="sm"
+                            className="h-8 w-8 p-0 hover:bg-muted"
+                            title="Edit"
+                            onClick={() => handleEditOrder(order.id)}
+                          >
+                            <Edit className="w-4 h-4 text-muted-foreground" />
+                          </Button>
+                        )}
+
+                        {order.processStatus === 2 && (
+                          <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                              <Button
+                                type="button"
+                                size="sm"
+                                className="h-8 w-8 p-0 hover:bg-muted"
+                                title="Complete"
+                                variant="default"
+                              >
+                                <Check />
+                              </Button>
+                            </AlertDialogTrigger>
+
+                            <AlertDialogContent>
+                              <AlertDialogHeader>
+                                <AlertDialogTitle>Complete order?</AlertDialogTitle>
+                                <AlertDialogDescription>
+                                  This will change the order status from Ready to Completed.
+                                </AlertDialogDescription>
+                              </AlertDialogHeader>
+
+                              <AlertDialogFooter>
+                                <AlertDialogCancel type="button">Cancel</AlertDialogCancel>
+                                <AlertDialogAction
+                                  type="button"
+                                  onClick={() => {
+                                    handleCompleteOrder(order.id);
+                                  }}
+                                >
+                                  Complete
+                                </AlertDialogAction>
+                              </AlertDialogFooter>
+                            </AlertDialogContent>
+                          </AlertDialog>
+                        )}
 
                         <AlertDialog>
                           <AlertDialogTrigger asChild>
@@ -331,7 +450,7 @@ export default function OrdersPage() {
 
                 {orders.length === 0 && (
                   <TableRow>
-                    <TableCell colSpan={7} className="py-10 text-center text-muted-foreground">
+                    <TableCell colSpan={8} className="py-10 text-center text-muted-foreground">
                       No orders found
                     </TableCell>
                   </TableRow>
@@ -342,10 +461,9 @@ export default function OrdersPage() {
         </CardContent>
       </Card>
 
-      {/* Pagination */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <p className="text-sm text-muted-foreground">
-          Page {page} of {paged.totalPages} • Total {paged.totalCount}
+          Page {page} of {paged.totalPages} • Total {paged.totalCount} • Showing up to {pageSize} rows
         </p>
 
         <div className="flex items-center gap-2">
