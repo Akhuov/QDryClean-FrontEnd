@@ -1,4 +1,4 @@
-import { BrowserRouter as Router, Routes, Route, useNavigate, useLocation, Navigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, useNavigate, useLocation } from 'react-router-dom';
 import { LayoutDashboard, ShoppingCart, Package, Users, Settings, LogOut } from 'lucide-react';
 import { useEffect } from 'react';
 import DashboardPage from '../pages/DashboardPage';
@@ -11,18 +11,16 @@ import { authService } from '../features/auth/authService';
 import { setNavigateFunction } from '../shared/api/axiosInstance';
 import Logo from '../assets/logo-sample.png';
 import { Toaster } from '../components/ui/sonner';
-
+import { TooltipProvider } from '../components/ui/tooltip';
 
 function AppContent() {
   const navigate = useNavigate();
   const location = useLocation();
 
-  // Устанавливаем функцию навигации для axios interceptor
   useEffect(() => {
     setNavigateFunction(navigate);
   }, [navigate]);
 
-  // Определяем текущую страницу по URL
   const getCurrentPage = () => {
     const path = location.pathname;
 
@@ -56,20 +54,16 @@ function AppContent() {
 
   return (
     <div className="flex h-screen bg-background">
-      {/* Sidebar */}
       <aside className="w-64 bg-gray-50 border-r border-gray-200 flex flex-col">
-        
-        {/* Logo */}
         <div className="h-16 flex items-center px-6 border-b border-gray-200">
-          <img 
-              src={Logo} 
-              alt="QDryClean Logo" 
-              className="w-15 h-10 object-contain"
+          <img
+            src={Logo}
+            alt="QDryClean Logo"
+            className="w-15 h-10 object-contain"
           />
           <h1 className="text-xl font-semibold text-gray-900">QDryClean</h1>
         </div>
 
-        {/* Navigation */}
         <nav className="flex-1 px-3 py-4 space-y-1">
           {navigation.map((item) => {
             const Icon = item.icon;
@@ -92,7 +86,6 @@ function AppContent() {
           })}
         </nav>
 
-        {/* Logout */}
         <div className="p-3 border-t border-gray-200">
           <button
             onClick={handleLogout}
@@ -104,7 +97,6 @@ function AppContent() {
         </div>
       </aside>
 
-      {/* Main Content */}
       <main className="flex-1 overflow-auto">
         <Routes>
           <Route index element={<DashboardPage />} />
@@ -126,11 +118,10 @@ function AppContent() {
   );
 }
 
-
 export default function App() {
   return (
     <Router>
-      <>
+      <TooltipProvider delayDuration={0}>
         <Routes>
           <Route path="/login" element={<LoginPage />} />
           <Route
@@ -143,8 +134,8 @@ export default function App() {
           />
         </Routes>
 
-        <Toaster /> {/* 👈 ВОТ ЭТО ДОБАВЬ */}
-      </>
+        <Toaster />
+      </TooltipProvider>
     </Router>
   );
 }

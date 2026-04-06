@@ -14,6 +14,7 @@ import axiosInstance from '../shared/api/axiosInstance';
 import StatusBadge from '../components/StatusBadge';
 import { getAxiosErrorMessage, parseId } from '../utils/apiHelpers';
 import OrderFormDialog from '../features/order/ui/OrderFormDialog';
+import OrderViewDialog from '../features/order/ui/OrderViewDialog';
 import OrdersSearchToolbar from '../features/order/ui/OrdersSearchToolbar';
 import { deleteOrderApi, getOrderByIdApi, closeOrderApi } from '../features/order/api/orderApi';
 import { toast } from 'sonner';
@@ -42,6 +43,11 @@ const STATUS_OPTIONS = [
 ];
 
 export default function OrdersPage() {
+
+  const [isViewOpen, setIsViewOpen] = useState(false);
+  const [viewOrder, setViewOrder] = useState(null);
+  const [viewLoading, setViewLoading] = useState(false);
+
   const [searchQuery, setSearchQuery] = useState('');
   const [appliedSearch, setAppliedSearch] = useState('');
 
@@ -123,6 +129,30 @@ export default function OrdersPage() {
     setPage(1);
   };
 
+  const handleViewOrder = async (orderId) => {
+    try {
+      setViewLoading(true);
+      setIsViewOpen(true);
+      setViewOrder(null);
+
+      const data = await getOrderByIdApi(orderId);
+
+      if (data.code !== 0 || !data.response) {
+        throw new Error(data.message || 'Failed to load order');
+      }
+
+      setViewOrder(data.response);
+    } catch (error) {
+      toast.error(
+        error.response?.data?.message ||
+          error.message ||
+          'Failed to load order details'
+      );
+      setIsViewOpen(false);
+    } finally {
+      setViewLoading(false);
+    }
+  };
 
   const handleClearFilters = () => {
     setSearchQuery('');
@@ -361,6 +391,7 @@ export default function OrdersPage() {
               <TableHeader>
                 <TableRow>
                   <TableHead>Customer</TableHead>
+                  <TableHead>Phone</TableHead>
                   <TableHead>Receipt Number</TableHead>
                   <TableHead>Created Date</TableHead>
                   <TableHead>Expected Date</TableHead>
@@ -377,6 +408,11 @@ export default function OrdersPage() {
                     <TableCell className="text-muted-foreground">
                       {order.customer?.fullName}
                     </TableCell>
+
+                    <TableCell className="text-muted-foreground">
+                      {order.customer?.phoneNumber}
+                    </TableCell>
+
                     <TableCell className="text-muted-foreground">
                       {order.receiptNumber}
                     </TableCell>
@@ -402,11 +438,11 @@ export default function OrdersPage() {
                       <div className="flex items-center justify-end gap-2">
                         <Button
                           type="button"
-                          size="sm"
-                          className="h-8 w-8 p-0 hover:bg-muted"
-                          title="View"
+                          variant="outline"
+                          size="icon"
+                          onClick={() => handleViewOrder(order.id)}
                         >
-                          <Eye className="w-4 h-4 text-muted-foreground" />
+                          <Eye className="h-4 w-4" />
                         </Button>
 
                         {order.status === 1 && (
@@ -509,10 +545,23 @@ export default function OrdersPage() {
           )}
         </CardContent>
       </Card>
+      
+      <OrderViewDialog
+        open={isViewOpen}
+        onOpenChange={(open) => {
+          setIsViewOpen(open);
+
+          if (!open) {
+            setViewOrder(null);
+          }
+        }}
+        order={viewOrder}
+        loading={viewLoading}
+      />
 
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <p className="text-sm text-muted-foreground">
-          Page {page} of {paged.totalPages} • Total {paged.totalCount} • Showing up to {pageSize} rows
+          Page {page} of {paged.totalPages} • Total {paged.totalCount}
         </p>
 
         <div className="flex items-center gap-2">
