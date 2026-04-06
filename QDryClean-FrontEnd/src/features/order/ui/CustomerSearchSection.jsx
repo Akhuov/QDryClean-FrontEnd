@@ -17,12 +17,12 @@ export default function CustomerSearchSection({
 }) {
   const inputRef = useRef(null);
 
-  const handleFocus = () => {
-    const input = inputRef.current;
-    if (!input) return;
+  const handleFocus = (e) => {
+    const input = e.target;
 
-    const length = input.value.length;
     requestAnimationFrame(() => {
+      const length = input.value.length;
+      input.focus();
       input.setSelectionRange(length, length);
     });
   };
@@ -62,11 +62,10 @@ export default function CustomerSearchSection({
           {canCreateCustomer && (
             <Button
               type="button"
-              variant="ghost"
-              className="h-auto p-0 text-sm"
+              variant="default"
               onClick={onOpenCreateCustomer}
             >
-              Create customer
+              Create new customer
             </Button>
           )}
         </div>

@@ -36,15 +36,6 @@ export default function OrdersSearchToolbar({
             </Button>
           )}
         </div>
-
-        <Button
-          type="button"
-          variant="default"
-          onClick={onSearch}
-          disabled={loading}
-        >
-          Search
-        </Button>
       </div>
 
       {error ? (

@@ -15,7 +15,7 @@ import StatusBadge from '../components/StatusBadge';
 import { getAxiosErrorMessage, parseId } from '../utils/apiHelpers';
 import OrderFormDialog from '../features/order/ui/OrderFormDialog';
 import OrdersSearchToolbar from '../features/order/ui/OrdersSearchToolbar';
-import { deleteOrderApi, getOrderByIdApi, completeOrderApi } from '../features/order/api/orderApi';
+import { deleteOrderApi, getOrderByIdApi, closeOrderApi } from '../features/order/api/orderApi';
 import { toast } from 'sonner';
 import {
   AlertDialogTrigger,
@@ -30,6 +30,16 @@ import {
 } from '../components/ui/alert-dialog';
 
 const PAGE_SIZE_OPTIONS = [10, 25, 50, 100];
+const STATUS_OPTIONS = [
+  { value: 'all', label: 'All' },
+  { value: '0', label: 'Draft' },
+  { value: '1', label: 'Created' },
+  { value: '2', label: 'In Progress' },
+  { value: '3', label: 'Ready' },
+  { value: '4', label: 'Completed' },
+  { value: '5', label: 'Canceled' },
+  { value: '6', label: 'Donated' },
+];
 
 export default function OrdersPage() {
   const [searchQuery, setSearchQuery] = useState('');
@@ -37,6 +47,7 @@ export default function OrdersPage() {
 
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
+  const [selectedStatus, setSelectedStatus] = useState('all');
 
   const [loading, setLoading] = useState(false);
   const [apiError, setApiError] = useState('');
@@ -54,7 +65,7 @@ export default function OrdersPage() {
   const [selectedOrder, setSelectedOrder] = useState(null);
 
   const fetchOrders = useCallback(
-    async ({ page: pageArg, q, pageSize: pageSizeArg }) => {
+    async ({ page: pageArg, q, pageSize: pageSizeArg, status }) => {
       setLoading(true);
       setApiError('');
 
@@ -66,6 +77,7 @@ export default function OrdersPage() {
             page: pageArg,
             pageSize: pageSizeArg,
             search: trimmed || undefined,
+            status: status !== 'all' ? Number(status) : undefined,
           },
         });
 
@@ -99,13 +111,26 @@ export default function OrdersPage() {
   );
 
   useEffect(() => {
-    fetchOrders({ page, q: appliedSearch, pageSize });
-  }, [fetchOrders, page, appliedSearch, pageSize]);
+    fetchOrders({ page, q: appliedSearch, pageSize, status: selectedStatus });
+  }, [fetchOrders, page, appliedSearch, pageSize, selectedStatus]);
 
   const handleSearchChange = (value) => {
     setSearchQuery(value);
   };
 
+  const handleStatusChange = (value) => {
+    setSelectedStatus(value);
+    setPage(1);
+  };
+
+
+  const handleClearFilters = () => {
+    setSearchQuery('');
+    setAppliedSearch('');
+    setSelectedStatus('all');
+    setPage(1);
+  };
+  
   const handleSearchClear = () => {
     setSearchQuery('');
     setAppliedSearch('');
@@ -130,6 +155,7 @@ export default function OrdersPage() {
           page: page,
           q: appliedSearch,
           pageSize,
+          status: selectedStatus,
         });
 
         return;
@@ -152,6 +178,7 @@ export default function OrdersPage() {
         page,
         q: appliedSearch,
         pageSize,
+        status: selectedStatus,
       });
     }
   };
@@ -162,26 +189,27 @@ export default function OrdersPage() {
     setIsModalOpen(true);
   };
 
-  const handleCompleteOrder = async (orderId) => {
+  const handleCloseOrder = async (orderId) => {
     try {
-      const data = await completeOrderApi(orderId);
+      const data = await closeOrderApi(orderId);
 
       if (data.code === 0) {
-        toast.success('Order completed successfully');
+        toast.success('Order closed successfully');
 
         await fetchOrders({
           page,
           q: appliedSearch,
           pageSize,
+          status: selectedStatus,
         });
 
         return;
       }
 
-      toast.error(data.message || 'Failed to complete order');
+      toast.error(data.message || 'Failed to closed order');
     } catch (error) {
       toast.error(
-        error.response?.data?.message || error.message || 'Failed to complete order'
+        error.response?.data?.message || error.message || 'Failed to closed order'
       );
     }
   };
@@ -284,23 +312,44 @@ export default function OrdersPage() {
         <CardHeader className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <CardTitle className="text-foreground">Orders</CardTitle>
 
-          <div className="flex items-center gap-3">
-            <span className="text-sm text-muted-foreground whitespace-nowrap">
-              Table Size
-            </span>
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+            <div className="flex items-center gap-3">
+              <span className="text-sm text-muted-foreground whitespace-nowrap">
+                Status
+              </span>
 
-            <Select value={String(pageSize)} onValueChange={handlePageSizeChange}>
-              <SelectTrigger className="w-[100px]">
-                <SelectValue placeholder="Size" />
-              </SelectTrigger>
-              <SelectContent>
-                {PAGE_SIZE_OPTIONS.map((size) => (
-                  <SelectItem key={size} value={String(size)}>
-                    {size}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+              <Select value={selectedStatus} onValueChange={handleStatusChange}>
+                <SelectTrigger className="w-[180px]">
+                  <SelectValue placeholder="Select status" />
+                </SelectTrigger>
+                <SelectContent>
+                  {STATUS_OPTIONS.map((status) => (
+                    <SelectItem key={status.value} value={status.value}>
+                      {status.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="flex items-center gap-3">
+              <span className="text-sm text-muted-foreground whitespace-nowrap">
+                Table Size
+              </span>
+
+              <Select value={String(pageSize)} onValueChange={handlePageSizeChange}>
+                <SelectTrigger className="w-[100px]">
+                  <SelectValue placeholder="Size" />
+                </SelectTrigger>
+                <SelectContent>
+                  {PAGE_SIZE_OPTIONS.map((size) => (
+                    <SelectItem key={size} value={String(size)}>
+                      {size}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
           </div>
         </CardHeader>
 
@@ -333,19 +382,19 @@ export default function OrdersPage() {
                     </TableCell>
                     <TableCell className="text-muted-foreground">
                       {order.createdAt
-                        ? new Date(order.createdAt).toLocaleDateString()
+                        ? new Date(order.createdAt).toLocaleDateString('ru-RU')
                         : '—'}
                     </TableCell>
                     <TableCell className="text-muted-foreground">
                       {order.expectedCompletionDate
-                        ? new Date(order.expectedCompletionDate).toLocaleDateString()
+                        ? new Date(order.expectedCompletionDate).toLocaleDateString('ru-RU')
                         : '—'}
                     </TableCell>
                     <TableCell className="text-center text-foreground">
                       {order.itemsCount}
                     </TableCell>
                     <TableCell className="text-center">
-                      <StatusBadge status={order.processStatus} />
+                      <StatusBadge status={order.status} />
                     </TableCell>
                     <TableCell className="text-right">{order.totalCost}</TableCell>
 
@@ -360,7 +409,7 @@ export default function OrdersPage() {
                           <Eye className="w-4 h-4 text-muted-foreground" />
                         </Button>
 
-                        {order.processStatus === 0 && (
+                        {order.status === 1 && (
                           <Button
                             type="button"
                             size="sm"
@@ -372,14 +421,14 @@ export default function OrdersPage() {
                           </Button>
                         )}
 
-                        {order.processStatus === 2 && (
+                        {order.status === 3 && (
                           <AlertDialog>
                             <AlertDialogTrigger asChild>
                               <Button
                                 type="button"
                                 size="sm"
                                 className="h-8 w-8 p-0 hover:bg-muted"
-                                title="Complete"
+                                title="Close"
                                 variant="default"
                               >
                                 <Check />
@@ -388,9 +437,9 @@ export default function OrdersPage() {
 
                             <AlertDialogContent>
                               <AlertDialogHeader>
-                                <AlertDialogTitle>Complete order?</AlertDialogTitle>
+                                <AlertDialogTitle>Close order?</AlertDialogTitle>
                                 <AlertDialogDescription>
-                                  This will change the order status from Ready to Completed.
+                                  This will change the order status from Ready to Closed.
                                 </AlertDialogDescription>
                               </AlertDialogHeader>
 
@@ -399,10 +448,10 @@ export default function OrdersPage() {
                                 <AlertDialogAction
                                   type="button"
                                   onClick={() => {
-                                    handleCompleteOrder(order.id);
+                                    handleCloseOrder(order.id);
                                   }}
                                 >
-                                  Complete
+                                  Close
                                 </AlertDialogAction>
                               </AlertDialogFooter>
                             </AlertDialogContent>
