@@ -3,6 +3,8 @@ import { Plus, Edit, Trash2, Eye, ChevronLeft, ChevronRight, Check } from 'lucid
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
 import { Button } from '../components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../components/ui/table';
+import { Printer } from 'lucide-react';
+import { printReceipt } from '../shared/api/printService';
 import {
   Select,
   SelectContent,
@@ -159,6 +161,36 @@ export default function OrdersPage() {
     setAppliedSearch('');
     setSelectedStatus('all');
     setPage(1);
+  };
+
+  const handleReprint = async (orderId) => {
+    try {
+      // получаем заказ с чеком
+      const data = await getOrderByIdApi(orderId);
+
+      if (data.code !== 0 || !data.response) {
+        throw new Error(data.message || 'Failed to load order');
+      }
+
+      const order = data.response;
+
+      if (!order.receiptBase64) {
+        toast.error('Receipt data not found');
+        return;
+      }
+
+      await printReceipt(order.receiptBase64);
+
+      toast.success('Receipt printed successfully');
+    } catch (error) {
+      console.error(error);
+
+      toast.error(
+        error.response?.data?.message ||
+          error.message ||
+          'Failed to print receipt'
+      );
+    }
   };
   
   const handleSearchClear = () => {
@@ -444,6 +476,17 @@ export default function OrdersPage() {
                         >
                           <Eye className="h-4 w-4" />
                         </Button>
+
+                        {order.status === 1 && (<Button
+                          type="button"
+                          variant="outline"
+                          size="icon"
+                          title="Reprint"
+                          onClick={() => handleReprint(order.id)}
+                        >
+                          <Printer className="h-4 w-4" />
+                        </Button>
+                        )}
 
                         {order.status === 1 && (
                           <Button
