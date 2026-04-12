@@ -30,10 +30,10 @@ export const deleteOrderApi = async (orderId) => {
   return response.data;
 };
 
-export const closeOrderApi = async (orderId) => {
+export const completeOrderApi = async (orderId) => {
   const response = await axiosInstance.patch(`/orders/${orderId}`, {
-    processStatus: 4,
-    note: 'Order Closed!',
+    status: 4,
+    note: 'Order Completed!',
   });
 
   return response.data;

@@ -1,6 +1,7 @@
 import axios from "axios";
 
-const API_URL = import.meta.env.VITE_API_URL;
+// Use proxy for development to avoid CORS issues
+const API_URL = import.meta.env.DEV ? '/api' : import.meta.env.VITE_API_URL;
 
 if (!API_URL) {
   throw new Error("VITE_API_URL is not configured");
@@ -30,9 +31,23 @@ axiosInstance.interceptors.response.use(
   (error) => {
     if (!error.response) {
       error.code = "NETWORK_ERROR";
+      
+      // For network/CORS errors, also clear auth and redirect to login
+      // as this might indicate backend is unreachable
+      localStorage.removeItem("token");
+      localStorage.removeItem("user");
+      
+      const currentPath = window.location.pathname;
+      if (currentPath !== "/login") {
+        window.location.href = "/login";
+      }
+      
+      return Promise.reject(error);
     }
 
+    // Handle 401 Unauthorized responses
     if (error.response?.status === 401 || error.response?.data?.code === 401) {
+      
       localStorage.removeItem("token");
       localStorage.removeItem("user");
 
@@ -41,7 +56,7 @@ axiosInstance.interceptors.response.use(
         if (navigateToLogin) {
           navigateToLogin("/login");
         } else {
-          window.location.replace("/login");
+          window.location.href = "/login";
         }
       }
     }

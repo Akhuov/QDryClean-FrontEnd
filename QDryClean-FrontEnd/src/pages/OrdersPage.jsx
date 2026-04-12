@@ -18,7 +18,7 @@ import { getAxiosErrorMessage, parseId } from '../utils/apiHelpers';
 import OrderFormDialog from '../features/order/ui/OrderFormDialog';
 import OrderViewDialog from '../features/order/ui/OrderViewDialog';
 import OrdersSearchToolbar from '../features/order/ui/OrdersSearchToolbar';
-import { deleteOrderApi, getOrderByIdApi, closeOrderApi } from '../features/order/api/orderApi';
+import { deleteOrderApi, getOrderByIdApi, completeOrderApi } from '../features/order/api/orderApi';
 import { toast } from 'sonner';
 import {
   AlertDialogTrigger,
@@ -156,12 +156,12 @@ export default function OrdersPage() {
     }
   };
 
-  const handleClearFilters = () => {
-    setSearchQuery('');
-    setAppliedSearch('');
-    setSelectedStatus('all');
-    setPage(1);
-  };
+  // const handleClearFilters = () => {
+  //   setSearchQuery('');
+  //   setAppliedSearch('');
+  //   setSelectedStatus('all');
+  //   setPage(1);
+  // };
 
   const handleReprint = async (orderId) => {
     try {
@@ -251,12 +251,12 @@ export default function OrdersPage() {
     setIsModalOpen(true);
   };
 
-  const handleCloseOrder = async (orderId) => {
+  const handleCompleteOrder = async (orderId) => {
     try {
-      const data = await closeOrderApi(orderId);
+      const data = await completeOrderApi(orderId);
 
       if (data.code === 0) {
-        toast.success('Order closed successfully');
+        toast.success('Order completed successfully');
 
         await fetchOrders({
           page,
@@ -507,7 +507,7 @@ export default function OrdersPage() {
                                 type="button"
                                 size="sm"
                                 className="h-8 w-8 p-0 hover:bg-muted"
-                                title="Close"
+                                title="Complete"
                                 variant="default"
                               >
                                 <Check />
@@ -516,21 +516,21 @@ export default function OrdersPage() {
 
                             <AlertDialogContent>
                               <AlertDialogHeader>
-                                <AlertDialogTitle>Close order?</AlertDialogTitle>
+                                <AlertDialogTitle>Complete order?</AlertDialogTitle>
                                 <AlertDialogDescription>
-                                  This will change the order status from Ready to Closed.
+                                  This will change the order status from Ready to Completed.
                                 </AlertDialogDescription>
                               </AlertDialogHeader>
 
-                              <AlertDialogFooter>
+                              <AlertDialogFooter> 
                                 <AlertDialogCancel type="button">Cancel</AlertDialogCancel>
                                 <AlertDialogAction
                                   type="button"
                                   onClick={() => {
-                                    handleCloseOrder(order.id);
+                                    handleCompleteOrder(order.id);
                                   }}
                                 >
-                                  Close
+                                  Complete
                                 </AlertDialogAction>
                               </AlertDialogFooter>
                             </AlertDialogContent>
