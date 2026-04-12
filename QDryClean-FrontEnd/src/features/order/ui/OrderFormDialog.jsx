@@ -68,6 +68,7 @@ export default function OrderFormDialog({
       brand: item.brandName ?? '',
       defects: item.description ?? '',
       price: item.itemType?.cost ?? 0,
+      status: item.status ?? 0,
 
       // для формы / payload
       itemTypeId: String(item.itemType?.id ?? ''),

@@ -20,39 +20,112 @@ const formatDate = (value) => {
   return date.toLocaleDateString('ru-RU');
 };
 
+const ITEM_STATUS = {
+  Accepted: 0,
+  Packed: 1,
+  Issued: 2,
+  Reprocessing: 3,
+  Damaged: 4,
+  Lost: 5,
+};
+
+const getItemStatusConfig = (status) => {
+  switch (Number(status)) {
+    case ITEM_STATUS.Accepted:
+      return {
+        label: 'Accepted',
+        wrapperClass: 'border-l-4 border-l-sky-500 bg-sky-50',
+        badgeClass: 'border-sky-200 bg-sky-100 text-sky-800',
+      };
+
+    case ITEM_STATUS.Packed:
+      return {
+        label: 'Packed',
+        wrapperClass: 'border-l-4 border-l-emerald-500 bg-emerald-50',
+        badgeClass: 'border-emerald-200 bg-emerald-100 text-emerald-800',
+      };
+
+    case ITEM_STATUS.Issued:
+      return {
+        label: 'Issued',
+        wrapperClass: 'border-l-4 border-l-slate-500 bg-slate-50',
+        badgeClass: 'border-slate-200 bg-slate-100 text-slate-800',
+      };
+
+    case ITEM_STATUS.Reprocessing:
+      return {
+        label: 'Reprocessing',
+        wrapperClass: 'border-l-4 border-l-amber-500 bg-amber-50',
+        badgeClass: 'border-amber-200 bg-amber-100 text-amber-800',
+      };
+
+    case ITEM_STATUS.Damaged:
+      return {
+        label: 'Damaged',
+        wrapperClass: 'border-l-4 border-l-red-500 bg-red-50',
+        badgeClass: 'border-red-200 bg-red-100 text-red-800',
+      };
+
+    case ITEM_STATUS.Lost:
+      return {
+        label: 'Lost',
+        wrapperClass: 'border-l-4 border-l-rose-600 bg-rose-50',
+        badgeClass: 'border-rose-200 bg-rose-100 text-rose-800',
+      };
+
+    default:
+      return {
+        label: 'Unknown',
+        wrapperClass: 'border-l-4 border-l-border bg-card',
+        badgeClass: 'border-border bg-muted text-muted-foreground',
+      };
+  }
+};
+
 function ViewItemCard({ item }) {
   const typeName = item.itemType?.name ?? '';
   const color = item.colour ?? '';
   const brand = item.brandName ?? '';
   const defects = item.description ?? '';
   const price = item.itemType?.cost ?? 0;
+  const statusConfig = getItemStatusConfig(item.status);
 
   const title = brand?.trim()
     ? `${brand.trim()} ${typeName}`.trim()
     : typeName || 'Item';
 
   return (
-    <div className="rounded-2xl border border-border bg-card p-4 shadow-sm">
-      <div className="space-y-1">
-        <p className="text-xs text-muted-foreground">
-          Тип: {getValue(typeName)}
-        </p>
-
-        <p className="text-lg font-semibold text-foreground break-words">
-          {getValue(title)}
-        </p>
-
-        <div className="pt-1 space-y-1">
-          <p className="text-sm text-muted-foreground break-words">
-            Цвет: {getValue(color, 'Не указан')}
+    <div
+      className={`rounded-2xl border border-border p-4 shadow-sm ${statusConfig.wrapperClass}`}
+    >
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0 flex-1 space-y-1">
+          <p className="text-xs text-muted-foreground">
+            Тип: {getValue(typeName)}
           </p>
-          <p className="text-sm text-muted-foreground break-words">
-            Бренд: {getValue(brand, 'Не указан')}
-          </p>
-          <p className="text-sm text-muted-foreground break-words">
-            Дефекты: {getValue(defects, 'Нет заметок')}
+
+          <p className="break-words text-lg font-semibold text-foreground">
+            {getValue(title)}
           </p>
         </div>
+
+        <span
+          className={`shrink-0 rounded-full border px-2.5 py-1 text-xs font-medium ${statusConfig.badgeClass}`}
+        >
+          {statusConfig.label}
+        </span>
+      </div>
+
+      <div className="pt-3 space-y-1">
+        <p className="break-words text-sm text-muted-foreground">
+          Цвет: {getValue(color, 'Не указан')}
+        </p>
+        <p className="break-words text-sm text-muted-foreground">
+          Бренд: {getValue(brand, 'Не указан')}
+        </p>
+        <p className="break-words text-sm text-muted-foreground">
+          Дефекты: {getValue(defects, 'Нет заметок')}
+        </p>
       </div>
 
       <div className="mt-4 border-t border-border pt-3">
@@ -140,7 +213,7 @@ export default function OrderViewDialog({
                       {notes.length > 0 ? (
                         <div className="mt-2 space-y-1">
                           {notes.map((note, index) => (
-                            <p key={index} className="text-sm text-foreground break-words">
+                            <p key={index} className="break-words text-sm text-foreground">
                               • {note}
                             </p>
                           ))}

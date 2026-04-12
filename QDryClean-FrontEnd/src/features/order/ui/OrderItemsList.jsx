@@ -9,6 +9,7 @@ export default function OrderItemsList({
   children,
   itemsEndRef,
   formatCurrency,
+  onPreviewPhoto,
 }) {
   return (
     <div className="max-h-[50vh] space-y-3 overflow-y-auto pr-2">
@@ -18,10 +19,11 @@ export default function OrderItemsList({
             key={item.id}
             item={item}
             onDelete={onDeleteItem}
+            onPreviewPhoto={onPreviewPhoto}
             formatCurrency={formatCurrency}
           />
         ))}
-    </div>
+      </div>
 
       {!isAddingItem ? (
         <button
