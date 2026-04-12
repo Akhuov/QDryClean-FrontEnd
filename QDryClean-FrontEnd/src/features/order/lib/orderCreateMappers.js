@@ -9,6 +9,7 @@ export function mapNewItemToOrderItem(newItem, selectedItemType) {
     brand: newItem.brand || 'Не указан',
     defects: newItem.defects || 'Нет заметок',
     price: selectedItemType.cost ?? 0,
+    status: newItem.status ?? 0,
     photoFile: newItem.photoFile,
     photoPreview: newItem.photoPreview,
   };

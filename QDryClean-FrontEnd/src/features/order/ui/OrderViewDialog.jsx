@@ -90,22 +90,14 @@ function ViewItemCard({ item }) {
   const price = item.itemType?.cost ?? 0;
   const statusConfig = getItemStatusConfig(item.status);
 
-  const title = brand?.trim()
-    ? `${brand.trim()} ${typeName}`.trim()
-    : typeName || 'Item';
-
   return (
     <div
       className={`rounded-2xl border border-border p-4 shadow-sm ${statusConfig.wrapperClass}`}
     >
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0 flex-1 space-y-1">
-          <p className="text-xs text-muted-foreground">
-            Тип: {getValue(typeName)}
-          </p>
-
           <p className="break-words text-lg font-semibold text-foreground">
-            {getValue(title)}
+            {typeName}
           </p>
         </div>
 

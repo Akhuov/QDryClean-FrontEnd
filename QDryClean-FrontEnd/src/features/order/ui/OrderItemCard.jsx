@@ -103,8 +103,8 @@ const OrderItemCard = forwardRef(
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0 flex-1">
             <div className="flex flex-wrap items-center gap-2">
-              <p className="truncate text-xs text-muted-foreground">
-                Тип: {getValue(typeName)}
+              <p className="mt-1 truncate text-lg font-semibold leading-tight text-foreground">
+                {getValue(title)}
               </p>
 
               <span
@@ -116,10 +116,6 @@ const OrderItemCard = forwardRef(
                 {statusConfig.label}
               </span>
             </div>
-
-            <p className="mt-1 truncate text-lg font-semibold leading-tight text-foreground">
-              {getValue(title)}
-            </p>
 
             <div className="mt-2 space-y-1">
               <p className="truncate text-sm text-muted-foreground">
