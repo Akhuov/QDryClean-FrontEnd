@@ -26,7 +26,7 @@ import {
 } from '../components/ui/dialog';
 
 import CustomerCreateDialog from '../features/customer/ui/CustomerCreateDialog';
-import ClientsSearchToolbar from '../features/customer/ui/ClientsSearchToolbar';
+import CustomerSearchToolbar from '../features/customer/ui/CustomerSearchToolbar';
 
 import {
   getCustomersApi,
@@ -40,7 +40,7 @@ import { toast } from 'sonner';
 
 const PAGE_SIZE_OPTIONS = [10, 25, 50, 100];
 
-export default function ClientsPage() {
+export default function CustomersPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [appliedSearch, setAppliedSearch] = useState('');
 
@@ -220,13 +220,13 @@ export default function ClientsPage() {
     <div className="p-8 space-y-8">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-semibold text-foreground">Clients</h1>
+          <h1 className="text-3xl font-semibold text-foreground">Customers</h1>
           <p className="text-muted-foreground mt-1">Create and manage customers.</p>
         </div>
       </div>
 
       <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-        <ClientsSearchToolbar
+        <CustomerSearchToolbar
           searchQuery={searchQuery}
           onSearchChange={handleSearchChange}
           onSearch={handleSearch}

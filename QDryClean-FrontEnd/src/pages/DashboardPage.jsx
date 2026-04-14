@@ -21,16 +21,16 @@ const ordersData = [
 ];
 
 const recentOrders = [
-  { id: 'ORD-2401', client: 'Sophia Clark', service: 'Express Cleaning', amount: '$125', status: 'Completed' },
-  { id: 'ORD-2402', client: 'Ethan Bennett', service: 'Standard Cleaning', amount: '$85', status: 'In Progress' },
-  { id: 'ORD-2403', client: 'Olivia Carter', service: 'Deep Cleaning', amount: '$210', status: 'Pending' },
-  { id: 'ORD-2404', client: 'Liam Davis', service: 'Express Cleaning', amount: '$125', status: 'Completed' },
+  { id: 'ORD-2401', customer: 'Sophia Clark', service: 'Express Cleaning', amount: '$125', status: 'Completed' },
+  { id: 'ORD-2402', customer: 'Ethan Bennett', service: 'Standard Cleaning', amount: '$85', status: 'In Progress' },
+  { id: 'ORD-2403', customer: 'Olivia Carter', service: 'Deep Cleaning', amount: '$210', status: 'Pending' },
+  { id: 'ORD-2404', customer: 'Liam Davis', service: 'Express Cleaning', amount: '$125', status: 'Completed' },
 ];
 
 const recentActivities = [
   { action: 'New order created', description: 'ORD-2404 by Liam Davis', time: '5 minutes ago' },
   { action: 'Package registered', description: 'PKG-8851 for ORD-2401', time: '12 minutes ago' },
-  { action: 'Client added', description: 'Sarah Johnson joined', time: '1 hour ago' },
+  { action: 'Customer added', description: 'Sarah Johnson joined', time: '1 hour ago' },
   { action: 'Payment received', description: '$125 from ORD-2400', time: '2 hours ago' },
 ];
 
@@ -61,7 +61,7 @@ export default function DashboardPage() {
 
         <Card className="border-border shadow-sm">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Total Clients</CardTitle>
+            <CardTitle className="text-sm font-medium text-muted-foreground">Total Customers</CardTitle>
             <Users className="w-4 h-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -148,7 +148,7 @@ export default function DashboardPage() {
                 <div key={order.id} className="flex items-center justify-between py-3 border-b border-border last:border-0">
                   <div>
                     <p className="font-medium text-foreground">{order.id}</p>
-                    <p className="text-sm text-muted-foreground">{order.client}</p>
+                    <p className="text-sm text-muted-foreground">{order.customer}</p>
                   </div>
                   <div className="text-right">
                     <p className="font-medium text-foreground">{order.amount}</p>
