@@ -6,6 +6,17 @@ import {
   useLocation,
 } from 'react-router-dom';
 import {
+  AlertDialog,
+  AlertDialogTrigger,
+  AlertDialogContent,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogCancel,
+  AlertDialogAction,
+} from '../components/ui/alert-dialog';
+import {
   LayoutDashboard,
   ShoppingCart,
   Package,
@@ -35,7 +46,7 @@ function AppContent() {
   const navigate = useNavigate();
   const location = useLocation();
 
-  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   useEffect(() => {
     setNavigateFunction(navigate);
@@ -119,15 +130,37 @@ function AppContent() {
 
         {/* Logout */}
         <div className="p-2 border-t border-gray-200">
-          <button
-            onClick={handleLogout}
-            className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg transition-all duration-200 text-gray-600 hover:bg-red-50 hover:text-red-600 ${
-              !isSidebarOpen && 'justify-center'
-            }`}
-          >
-            <LogOut className="w-5 h-5" />
-            {isSidebarOpen && <span>Выйти</span>}
-          </button>
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <button
+                className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg transition-all duration-200 text-gray-600 hover:bg-red-50 hover:text-red-600 ${
+                  !isSidebarOpen && 'justify-center'
+                }`}
+              >
+                <LogOut className="w-5 h-5" />
+                {isSidebarOpen && <span>Выйти</span>}
+              </button>
+            </AlertDialogTrigger>
+
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Выйти из системы?</AlertDialogTitle>
+                <AlertDialogDescription>
+                  Вы уверены, что хотите выйти из аккаунта?
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+
+              <AlertDialogFooter>
+                <AlertDialogCancel>Отмена</AlertDialogCancel>
+                <AlertDialogAction
+                  onClick={handleLogout}
+                  className="bg-destructive hover:bg-destructive/90"
+                >
+                  Выйти
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
         </div>
         <button
           type="button"
