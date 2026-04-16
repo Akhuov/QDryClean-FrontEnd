@@ -1,10 +1,14 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
-import { Plus, Edit, Trash2, Eye, ChevronLeft, ChevronRight, Check } from 'lucide-react';
+import { Plus, Edit, Trash2, Eye, ChevronLeft, ChevronRight, Check, Printer } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
 import { Button } from '../components/ui/button';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../components/ui/table';
-import { Printer } from 'lucide-react';
-import { printReceipt } from '../shared/api/printService';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '../components/ui/table';
 import {
   Select,
   SelectContent,
@@ -12,14 +16,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from '../components/ui/select';
-import axiosInstance from '../shared/api/axiosInstance';
 import StatusBadge from '../components/StatusBadge';
-import { getAxiosErrorMessage, parseId } from '../utils/apiHelpers';
 import OrderFormDialog from '../features/order/ui/OrderFormDialog';
 import OrderViewDialog from '../features/order/ui/OrderViewDialog';
 import OrdersSearchToolbar from '../features/order/ui/OrdersSearchToolbar';
-import { deleteOrderApi, getOrderByIdApi, completeOrderApi } from '../features/order/api/orderApi';
-import { toast } from 'sonner';
+import { useOrderPage } from '../features/order/model/useOrderPage';
 import {
   AlertDialogTrigger,
   AlertDialog,
@@ -45,323 +46,39 @@ const STATUS_OPTIONS = [
 ];
 
 export default function OrdersPage() {
-
-  const [isViewOpen, setIsViewOpen] = useState(false);
-  const [viewOrder, setViewOrder] = useState(null);
-  const [viewLoading, setViewLoading] = useState(false);
-
-  const [searchQuery, setSearchQuery] = useState('');
-  const [appliedSearch, setAppliedSearch] = useState('');
-
-  const [page, setPage] = useState(1);
-  const [pageSize, setPageSize] = useState(10);
-  const [selectedStatus, setSelectedStatus] = useState('all');
-
-  const [loading, setLoading] = useState(false);
-  const [apiError, setApiError] = useState('');
-  const [paged, setPaged] = useState({
-    items: [],
-    page: 1,
-    pageSize: 10,
-    totalCount: 0,
-    totalPages: 1,
-  });
-  const [editLoading, setEditLoading] = useState(false);
-
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [dialogMode, setDialogMode] = useState('create');
-  const [selectedOrder, setSelectedOrder] = useState(null);
-
-  const fetchOrders = useCallback(
-    async ({ page: pageArg, q, pageSize: pageSizeArg, status }) => {
-      setLoading(true);
-      setApiError('');
-
-      try {
-        const trimmed = String(q ?? '').trim();
-
-        const res = await axiosInstance.get('/orders', {
-          params: {
-            page: pageArg,
-            pageSize: pageSizeArg,
-            search: trimmed || undefined,
-            status: status !== 'all' ? Number(status) : undefined,
-          },
-        });
-
-        if (res.data?.code !== 0) {
-          throw new Error(res.data?.message || 'API error');
-        }
-
-        const resp = res.data.response ?? res.data.responseBody;
-
-        setPaged({
-          items: resp?.items ?? [],
-          page: resp?.page ?? pageArg,
-          pageSize: resp?.pageSize ?? pageSizeArg,
-          totalCount: resp?.totalCount ?? 0,
-          totalPages: resp?.totalPages ?? 1,
-        });
-      } catch (err) {
-        setApiError(getAxiosErrorMessage(err));
-        setPaged((prev) => ({
-          ...prev,
-          items: [],
-          page: 1,
-          totalCount: 0,
-          totalPages: 1,
-        }));
-      } finally {
-        setLoading(false);
-      }
-    },
-    []
-  );
-
-  useEffect(() => {
-    fetchOrders({ page, q: appliedSearch, pageSize, status: selectedStatus });
-  }, [fetchOrders, page, appliedSearch, pageSize, selectedStatus]);
-
-  const handleSearchChange = (value) => {
-    setSearchQuery(value);
-  };
-
-  const handleStatusChange = (value) => {
-    setSelectedStatus(value);
-    setPage(1);
-  };
-
-  const handleViewOrder = async (orderId) => {
-    try {
-      setViewLoading(true);
-      setIsViewOpen(true);
-      setViewOrder(null);
-
-      const data = await getOrderByIdApi(orderId);
-
-      if (data.code !== 0 || !data.response) {
-        throw new Error(data.message || 'Failed to load order');
-      }
-
-      setViewOrder(data.response);
-    } catch (error) {
-      toast.error(
-        error.response?.data?.message ||
-          error.message ||
-          'Failed to load order details'
-      );
-      setIsViewOpen(false);
-    } finally {
-      setViewLoading(false);
-    }
-  };
-
-  // const handleClearFilters = () => {
-  //   setSearchQuery('');
-  //   setAppliedSearch('');
-  //   setSelectedStatus('all');
-  //   setPage(1);
-  // };
-
-  const handleReprint = async (orderId) => {
-    try {
-      // получаем заказ с чеком
-      const data = await getOrderByIdApi(orderId);
-
-      if (data.code !== 0 || !data.response) {
-        throw new Error(data.message || 'Failed to load order');
-      }
-
-      const order = data.response;
-
-      if (!order.receiptBase64) {
-        toast.error('Receipt data not found');
-        return;
-      }
-
-      await printReceipt(order.receiptBase64);
-
-      toast.success('Receipt printed successfully');
-    } catch (error) {
-      console.error(error);
-
-      toast.error(
-        error.response?.data?.message ||
-          error.message ||
-          'Failed to print receipt'
-      );
-    }
-  };
-  
-  const handleSearchClear = () => {
-    setSearchQuery('');
-    setAppliedSearch('');
-    setPage(1);
-  };
-
-  const handlePageSizeChange = (value) => {
-    const nextPageSize = Number(value);
-
-    setPageSize(nextPageSize);
-    setPage(1);
-  };
-
-  const handleDeleteOrder = async (orderId) => {
-    try {
-      const data = await deleteOrderApi(orderId);
-
-      if (data.code === 0) {
-        toast.success('Order deleted successfully');
-
-        fetchOrders({
-          page: page,
-          q: appliedSearch,
-          pageSize,
-          status: selectedStatus,
-        });
-
-        return;
-      }
-
-      toast.error(data.message || 'Failed to delete order');
-    } catch (error) {
-      toast.error(error.response?.data?.message || 'Failed to delete order');
-    }
-  };
-
-  const handleOrderDialogOpenChange = async (isOpen) => {
-    setIsModalOpen(isOpen);
-
-    if (!isOpen) {
-      setDialogMode('create');
-      setSelectedOrder(null);
-
-      await fetchOrders({
-        page,
-        q: appliedSearch,
-        pageSize,
-        status: selectedStatus,
-      });
-    }
-  };
-
-  const handleCreateOrder = () => {
-    setDialogMode('create');
-    setSelectedOrder(null);
-    setIsModalOpen(true);
-  };
-
-  const handleCompleteOrder = async (orderId) => {
-    try {
-      const data = await completeOrderApi(orderId);
-
-      if (data.code === 0) {
-        toast.success('Order completed successfully');
-
-        await fetchOrders({
-          page,
-          q: appliedSearch,
-          pageSize,
-          status: selectedStatus,
-        });
-
-        return;
-      }
-
-      toast.error(data.message || 'Failed to closed order');
-    } catch (error) {
-      toast.error(
-        error.response?.data?.message || error.message || 'Failed to closed order'
-      );
-    }
-  };
-
-  const handleEditOrder = async (orderId) => {
-    try {
-      setEditLoading(true);
-
-      const data = await getOrderByIdApi(orderId);
-
-      if (data.code !== 0 || !data.response) {
-        throw new Error(data.message || 'Failed to load order');
-      }
-
-      setDialogMode('edit');
-      setSelectedOrder(data.response);
-      setIsModalOpen(true);
-    } catch (error) {
-      toast.error(
-        error.response?.data?.message ||
-          error.message ||
-          'Failed to load order details'
-      );
-    } finally {
-      setEditLoading(false);
-    }
-  };
-
-  const handleSearch = () => {
-    setPage(1);
-    setAppliedSearch(searchQuery.trim());
-  };
-
-  const orders = useMemo(() => paged.items ?? [], [paged.items]);
-
-  const isIdSearch = parseId(appliedSearch) !== null;
-
-  const canPrev = !isIdSearch && page > 1;
-  const canNext = !isIdSearch && page < (paged.totalPages || 1);
-
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      const trimmed = searchQuery.trim();
-
-      if (trimmed !== appliedSearch) {
-        setPage(1);
-        setAppliedSearch(trimmed);
-      }
-
-      if (!trimmed && appliedSearch !== '') {
-        setPage(1);
-        setAppliedSearch('');
-      }
-    }, 400);
-
-    return () => clearTimeout(timer);
-  }, [searchQuery, appliedSearch]);
-
+  const vm = useOrderPage();
 
   return (
     <div className="p-8 space-y-8">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-semibold text-foreground">Orders</h1>
-          <p className="text-muted-foreground mt-1">Create and manage orders.</p>
+          <p className="mt-1 text-muted-foreground">Create and manage orders.</p>
         </div>
       </div>
 
       <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
         <OrdersSearchToolbar
-          searchQuery={searchQuery}
-          onSearchChange={handleSearchChange}
-          onSearch={handleSearch}
-          onClear={handleSearchClear}
-          loading={loading}
-          error={apiError}
+          searchQuery={vm.searchQuery}
+          onSearchChange={vm.handleSearchChange}
+          onSearch={vm.handleSearch}
+          onClear={vm.handleSearchClear}
+          loading={vm.loading}
+          error={vm.apiError}
         />
 
         <div className="w-full lg:w-auto">
           <OrderFormDialog
-            mode={dialogMode}
-            open={isModalOpen}
-            onOpenChange={handleOrderDialogOpenChange}
-            loading={editLoading}
-            initialOrder={selectedOrder}
+            mode={vm.dialogMode}
+            open={vm.isModalOpen}
+            onOpenChange={vm.handleOrderDialogOpenChange}
+            loading={vm.editLoading}
+            initialOrder={vm.selectedOrder}
           >
             <Button
               variant="default"
-              className="h-10 w-full lg:w-auto flex items-center gap-2 border border-border"
-              onClick={handleCreateOrder}
+              className="flex h-10 w-full items-center gap-2 border border-border lg:w-auto"
+              onClick={vm.handleCreateOrder}
             >
               <Plus className="h-4 w-4" />
               Create Order
@@ -376,11 +93,11 @@ export default function OrdersPage() {
 
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
             <div className="flex items-center gap-3">
-              <span className="text-sm text-muted-foreground whitespace-nowrap">
+              <span className="whitespace-nowrap text-sm text-muted-foreground">
                 Status
               </span>
 
-              <Select value={selectedStatus} onValueChange={handleStatusChange}>
+              <Select value={vm.selectedStatus} onValueChange={vm.handleStatusChange}>
                 <SelectTrigger className="w-[180px]">
                   <SelectValue placeholder="Select status" />
                 </SelectTrigger>
@@ -395,11 +112,11 @@ export default function OrdersPage() {
             </div>
 
             <div className="flex items-center gap-3">
-              <span className="text-sm text-muted-foreground whitespace-nowrap">
+              <span className="whitespace-nowrap text-sm text-muted-foreground">
                 Table Size
               </span>
 
-              <Select value={String(pageSize)} onValueChange={handlePageSizeChange}>
+              <Select value={String(vm.pageSize)} onValueChange={vm.handlePageSizeChange}>
                 <SelectTrigger className="w-[100px]">
                   <SelectValue placeholder="Size" />
                 </SelectTrigger>
@@ -416,7 +133,7 @@ export default function OrdersPage() {
         </CardHeader>
 
         <CardContent>
-          {loading ? (
+          {vm.loading ? (
             <div className="py-10 text-center text-muted-foreground">Loading...</div>
           ) : (
             <Table>
@@ -435,7 +152,7 @@ export default function OrdersPage() {
               </TableHeader>
 
               <TableBody>
-                {orders.map((order) => (
+                {vm.orders.map((order) => (
                   <TableRow key={order.id}>
                     <TableCell className="text-muted-foreground">
                       {order.customer?.fullName}
@@ -448,22 +165,27 @@ export default function OrdersPage() {
                     <TableCell className="text-muted-foreground">
                       {order.receiptNumber}
                     </TableCell>
+
                     <TableCell className="text-muted-foreground">
                       {order.createdAt
                         ? new Date(order.createdAt).toLocaleDateString('ru-RU')
                         : '—'}
                     </TableCell>
+
                     <TableCell className="text-muted-foreground">
                       {order.expectedCompletionDate
                         ? new Date(order.expectedCompletionDate).toLocaleDateString('ru-RU')
                         : '—'}
                     </TableCell>
+
                     <TableCell className="text-center text-foreground">
                       {order.itemsCount}
                     </TableCell>
+
                     <TableCell className="text-center">
                       <StatusBadge status={order.status} />
                     </TableCell>
+
                     <TableCell className="text-right">{order.totalCost}</TableCell>
 
                     <TableCell className="text-right">
@@ -472,20 +194,21 @@ export default function OrdersPage() {
                           type="button"
                           variant="outline"
                           size="icon"
-                          onClick={() => handleViewOrder(order.id)}
+                          onClick={() => vm.handleViewOrder(order.id)}
                         >
                           <Eye className="h-4 w-4" />
                         </Button>
 
-                        {order.status === 1 && (<Button
-                          type="button"
-                          variant="outline"
-                          size="icon"
-                          title="Reprint"
-                          onClick={() => handleReprint(order.id)}
-                        >
-                          <Printer className="h-4 w-4" />
-                        </Button>
+                        {order.status === 1 && (
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="icon"
+                            title="Reprint"
+                            onClick={() => vm.handleReprint(order.id)}
+                          >
+                            <Printer className="h-4 w-4" />
+                          </Button>
                         )}
 
                         {order.status === 1 && (
@@ -494,9 +217,9 @@ export default function OrdersPage() {
                             size="sm"
                             className="h-8 w-8 p-0 hover:bg-muted"
                             title="Edit"
-                            onClick={() => handleEditOrder(order.id)}
+                            onClick={() => vm.handleEditOrder(order.id)}
                           >
-                            <Edit className="w-4 h-4 text-muted-foreground" />
+                            <Edit className="h-4 w-4 text-muted-foreground" />
                           </Button>
                         )}
 
@@ -510,7 +233,7 @@ export default function OrdersPage() {
                                 title="Complete"
                                 variant="default"
                               >
-                                <Check />
+                                <Check className="h-4 w-4" />
                               </Button>
                             </AlertDialogTrigger>
 
@@ -522,13 +245,11 @@ export default function OrdersPage() {
                                 </AlertDialogDescription>
                               </AlertDialogHeader>
 
-                              <AlertDialogFooter> 
+                              <AlertDialogFooter>
                                 <AlertDialogCancel type="button">Cancel</AlertDialogCancel>
                                 <AlertDialogAction
                                   type="button"
-                                  onClick={() => {
-                                    handleCompleteOrder(order.id);
-                                  }}
+                                  onClick={() => vm.handleCompleteOrder(order.id)}
                                 >
                                   Complete
                                 </AlertDialogAction>
@@ -546,7 +267,7 @@ export default function OrdersPage() {
                               className="h-8 w-8 p-0"
                               title="Delete"
                             >
-                              <Trash2 className="w-4 h-4" />
+                              <Trash2 className="h-4 w-4" />
                             </Button>
                           </AlertDialogTrigger>
 
@@ -562,9 +283,7 @@ export default function OrdersPage() {
                               <AlertDialogCancel type="button">Cancel</AlertDialogCancel>
                               <AlertDialogAction
                                 type="button"
-                                onClick={() => {
-                                  handleDeleteOrder(order.id);
-                                }}
+                                onClick={() => vm.handleDeleteOrder(order.id)}
                               >
                                 Delete
                               </AlertDialogAction>
@@ -576,9 +295,9 @@ export default function OrdersPage() {
                   </TableRow>
                 ))}
 
-                {orders.length === 0 && (
+                {vm.orders.length === 0 && (
                   <TableRow>
-                    <TableCell colSpan={8} className="py-10 text-center text-muted-foreground">
+                    <TableCell colSpan={9} className="py-10 text-center text-muted-foreground">
                       No orders found
                     </TableCell>
                   </TableRow>
@@ -588,46 +307,49 @@ export default function OrdersPage() {
           )}
         </CardContent>
       </Card>
-      
-      <OrderViewDialog
-        open={isViewOpen}
-        onOpenChange={(open) => {
-          setIsViewOpen(open);
 
+      <OrderViewDialog
+        open={vm.isViewOpen}
+        onOpenChange={(open) => {
+          vm.setIsViewOpen(open);
           if (!open) {
-            setViewOrder(null);
+            vm.setViewOrder(null);
           }
         }}
-        order={viewOrder}
-        loading={viewLoading}
+        order={vm.viewOrder}
+        loading={vm.viewLoading}
       />
 
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <p className="text-sm text-muted-foreground">
-          Page {page} of {paged.totalPages} • Total {paged.totalCount}
+          Page {vm.page} of {vm.paged.totalPages} • Total {vm.paged.totalCount}
         </p>
 
         <div className="flex items-center gap-2">
           <Button
             size="sm"
             className="border-input"
-            disabled={!canPrev || loading}
-            onClick={() => setPage((p) => Math.max(1, p - 1))}
+            disabled={!vm.canPrev || vm.loading}
+            onClick={() => vm.setPage((p) => Math.max(1, p - 1))}
           >
-            <ChevronLeft className="w-4 h-4" />
+            <ChevronLeft className="h-4 w-4" />
           </Button>
 
-          <Button size="sm" className="bg-primary text-primary-foreground border-primary" disabled>
-            {page}
+          <Button
+            size="sm"
+            className="border-primary bg-primary text-primary-foreground"
+            disabled
+          >
+            {vm.page}
           </Button>
 
           <Button
             size="sm"
             className="border-input"
-            disabled={!canNext || loading}
-            onClick={() => setPage((p) => p + 1)}
+            disabled={!vm.canNext || vm.loading}
+            onClick={() => vm.setPage((p) => p + 1)}
           >
-            <ChevronRight className="w-4 h-4" />
+            <ChevronRight className="h-4 w-4" />
           </Button>
         </div>
       </div>
