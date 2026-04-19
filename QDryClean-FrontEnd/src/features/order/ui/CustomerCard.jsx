@@ -18,6 +18,11 @@ export default function CustomerCard({ customer, formatPhoneDisplay }) {
             <p className="text-sm text-muted-foreground">
               {formatPhoneDisplay(customer.phoneNumber)}
             </p>
+            {customer.additionalPhoneNumber && (
+              <p className="text-sm text-muted-foreground">
+                {formatPhoneDisplay(customer.additionalPhoneNumber)}
+              </p>
+            )}
           </div>
         </div>
 

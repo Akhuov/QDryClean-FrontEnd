@@ -32,7 +32,7 @@ export const deleteOrderApi = async (orderId) => {
 
 export const completeOrderApi = async (orderId) => {
   const response = await axiosInstance.patch(`/orders/${orderId}`, {
-    processStatus: 3,
+    status: 4,
     note: 'Order Completed!',
   });
 

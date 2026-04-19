@@ -16,7 +16,6 @@ const buttonVariants = cva(
     "outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background",
     // states
     "disabled:pointer-events-none disabled:opacity-50 disabled:cursor-not-allowed",
-    "active:translate-y-[1px]",
     // icons
     "[&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
     // validation
@@ -25,15 +24,15 @@ const buttonVariants = cva(
   {
     variants: {
       variant: {
-        default: "hover:text-blue-600 hover:shadow-sm border-border",
+        default: "hover:text-blue-600 hover:shadow-sm border-border active:translate-y-[1px]",
         destructive:
           "bg-destructive text-white hover:bg-destructive/90 hover:shadow-sm focus-visible:ring-destructive/30 dark:focus-visible:ring-destructive/40 dark:bg-destructive/60",
         outline:
-          "bg-background text-foreground border-input hover:bg-accent hover:text-accent-foreground hover:border-accent dark:bg-input/30 dark:border-input dark:hover:bg-input/50",
-        secondary: "bg-secondary text-secondary-foreground hover:bg-secondary/80 hover:shadow-sm",
-        ghost: "absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground transition hover:text-foreground !active:translate-y-[1px]",
+          "bg-background text-foreground border-input hover:bg-accent hover:text-accent-foreground hover:border-accent dark:bg-input/30 dark:border-input dark:hover:bg-input/50 active:translate-y-[1px]",
+        secondary: "bg-secondary text-secondary-foreground hover:bg-secondary/80 hover:shadow-sm active:translate-y-[1px]",
+        ghost: "absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground transition hover:text-foreground",
         link: "border-transparent bg-transparent text-primary underline-offset-4 hover:underline",
-        delete: "hover:!text-red-600 hover:shadow-sm border-border",
+        delete: "hover:!text-red-600 hover:shadow-sm border-border active:translate-y-[1px]",
       },
       size: {
         default: "h-9 px-4 py-2 has-[>svg]:px-3",

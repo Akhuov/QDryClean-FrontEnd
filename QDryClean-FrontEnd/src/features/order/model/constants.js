@@ -5,4 +5,5 @@ export const EMPTY_NEW_ITEM = {
   defects: '',
   photoFile: null,
   photoPreview: '',
+  status: 0,
 };

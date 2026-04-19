@@ -1,10 +1,38 @@
 export const statusMap = {
-  0: { label: "Created", badge: "bg-zinc-200 text-zinc-900 border border-zinc-400" },
-  1: { label: "Accepted", badge: "bg-sky-200 text-sky-900 border border-sky-400" },
-  2: { label: "Ready", badge: "bg-yellow-200 text-yellow-950 border border-yellow-400" },
-  3: { label: "Completed", badge: "bg-emerald-200 text-emerald-950 border border-emerald-400" },
-  4: { label: "Canceled", badge: "bg-rose-200 text-rose-950 border border-rose-400" },
-  5: { label: "Donated", badge: "bg-violet-200 text-violet-950 border border-violet-400" },
+  0: { 
+    label: "Draft", 
+    badge: "bg-gray-100 text-gray-700 border border-gray-300" 
+  },
+
+  1: { 
+    label: "Created", 
+    badge: "bg-blue-100 text-blue-800 border border-blue-300" 
+  },
+
+  2: { 
+    label: "InProgress", 
+    badge: "bg-amber-100 text-amber-800 border border-amber-300" 
+  },
+
+  3: { 
+    label: "Ready", 
+    badge: "bg-cyan-100 text-cyan-800 border border-cyan-300" 
+  },
+
+  4: { 
+    label: "Completed", 
+    badge: "bg-green-100 text-green-800 border border-green-300" 
+  },
+
+  5: { 
+    label: "Canceled", 
+    badge: "bg-red-100 text-red-800 border border-red-300" 
+  },
+
+  6: { 
+    label: "Donated", 
+    badge: "bg-purple-100 text-purple-800 border border-purple-300" 
+  },
 };
 
 export default function StatusBadge({ status }) {

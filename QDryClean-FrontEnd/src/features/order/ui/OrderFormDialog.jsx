@@ -9,6 +9,7 @@ import CustomerCreateDialog from '../../customer/ui/CustomerCreateDialog';
 
 import { createCustomerApi } from '../../customer/api/customerApi';
 import { createOrderApi, updateOrderApi } from '../api/orderApi';
+import { printReceipt } from '../../../shared/api/printService';
 import { toast } from 'sonner';
 
 import { useOrderDialog } from '../model/useOrderDialog';
@@ -26,13 +27,17 @@ export default function OrderFormDialog({
   const vm = useOrderDialog();
   const [isCreateCustomerOpen, setIsCreateCustomerOpen] = useState(false);
   const [creatingCustomer, setCreatingCustomer] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
 
   const isEditMode = mode === 'edit';
 
   const title = isEditMode ? 'Edit Order' : 'Create Order';
-  const submitText = isEditMode ? 'Save Changes' : 'Create Order';
-  const dialogDescription = isEditMode 
-    ? 'Edit existing order details, items, and customer information' 
+  const submitText = submitting
+    ? (isEditMode ? 'Saving...' : 'Creating...')
+    : (isEditMode ? 'Save Changes' : 'Create Order');
+
+  const dialogDescription = isEditMode
+    ? 'Edit existing order details, items, and customer information'
     : 'Create new order with customer details and items';
 
   useEffect(() => {
@@ -49,7 +54,6 @@ export default function OrderFormDialog({
     vm.resetAllState?.();
   }, [open, isEditMode, initialOrder]);
 
-
   const hydrateFormFromOrder = (order) => {
     vm.setCustomer?.(order.customer ?? null);
     vm.setPhone?.(order.customer?.phoneNumber ?? '');
@@ -64,6 +68,7 @@ export default function OrderFormDialog({
       brand: item.brandName ?? '',
       defects: item.description ?? '',
       price: item.itemType?.cost ?? 0,
+      status: item.status ?? 0,
 
       // для формы / payload
       itemTypeId: String(item.itemType?.id ?? ''),
@@ -96,24 +101,60 @@ export default function OrderFormDialog({
     return payload;
   };
 
-  const handleSubmit = async () => {
-    const payload = buildSubmitPayload();
-    if (!payload) return;
+  const handleCreateSuccess = async (createdOrder) => {
+    if (!createdOrder) {
+      toast.error('Order created, but response payload is empty');
+      return;
+    }
+
+    if (!createdOrder.receiptBase64) {
+      toast.warning('Order created, but receipt data is missing');
+      vm.resetAllState?.();
+      setIsCreateCustomerOpen(false);
+      onOpenChange(false);
+      return;
+    }
 
     try {
-      const data = isEditMode
-        ? await updateOrderApi(payload.id, payload)
-        : await createOrderApi(payload);
+      await printReceipt(createdOrder.receiptBase64);
 
-      if (data.code === 0) {
-        toast.success(
-          isEditMode ? 'Order updated successfully' : 'Order created successfully',
-          {
-            description: isEditMode
-              ? 'The order has been updated.'
-              : 'The order has been saved.',
-          }
-        );
+      toast.success('Order created successfully', {
+        description: 'Receipt printed successfully.',
+      });
+    } catch (printError) {
+      console.error('Print failed:', printError);
+
+      toast.warning('Order created, but receipt printing failed', {
+        description:
+          printError?.response?.data?.message ||
+          printError?.message ||
+          'Print service is unavailable',
+      });
+    }
+
+    vm.resetAllState?.();
+    setIsCreateCustomerOpen(false);
+    onOpenChange(false);
+  };
+
+  const handleSubmit = async () => {
+    const payload = buildSubmitPayload();
+    if (!payload || submitting) return;
+
+    try {
+      setSubmitting(true);
+
+      if (isEditMode) {
+        const data = await updateOrderApi(payload.id, payload);
+
+        if (data.code !== 0) {
+          toast.error(data.message || 'Operation failed');
+          return;
+        }
+
+        toast.success('Order updated successfully', {
+          description: 'The order has been updated.',
+        });
 
         vm.resetAllState?.();
         setIsCreateCustomerOpen(false);
@@ -121,13 +162,22 @@ export default function OrderFormDialog({
         return;
       }
 
-      toast.error(data.message || 'Operation failed');
+      const data = await createOrderApi(payload);
+
+      if (data.code !== 0) {
+        toast.error(data.message || 'Operation failed');
+        return;
+      }
+
+      await handleCreateSuccess(data.response);
     } catch (error) {
       toast.error(
-        error.response?.data?.message ||
-          error.message ||
+        error?.response?.data?.message ||
+          error?.message ||
           'Unexpected error'
       );
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -152,7 +202,7 @@ export default function OrderFormDialog({
   };
 
   const isSearchDisabled = useMemo(() => {
-    if (isEditMode) return true; // обычно в edit customer не меняют
+    if (isEditMode) return true;
     return getPhoneNumberForRequest(vm.phone).length !== 9;
   }, [isEditMode, vm.phone]);
 
@@ -200,12 +250,12 @@ export default function OrderFormDialog({
                     vm.handleSearchCustomer();
                   }
                 }}
-                isSearchDisabled={getPhoneNumberForRequest(vm.phone).length !== 9}
+                isSearchDisabled={isSearchDisabled}
                 canCreateCustomer={vm.canCreateCustomer}
                 onOpenCreateCustomer={() => setIsCreateCustomerOpen(true)}
               />
             )}
-            
+
             {vm.customer && (
               <>
                 <CustomerCard
@@ -239,7 +289,7 @@ export default function OrderFormDialog({
 
                 <OrderSummaryBar
                   total={vm.total}
-                  loading={loading}
+                  loading={loading || submitting}
                   onCreateOrder={handleSubmit}
                   actionText={submitText}
                   formatCurrency={formatCurrency}

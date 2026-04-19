@@ -24,13 +24,26 @@ export default function CustomerCreateDialog({
     const payload = vm.buildPayload();
     if (!payload) return;
 
-    const createdCustomer = await onSubmit(payload);
+    try {
+      const createdCustomer = await onSubmit(payload);
 
-    if (createdCustomer) {
-      toast.success('Customer created successfully', {
-        description: 'The customer has been saved.',
+      if (createdCustomer) {
+        toast.success('Customer created successfully', {
+          description: 'The customer has been saved.',
+        });
+        vm.resetForm();
+        return;
+      }
+
+      toast.error('Failed to create customer', {
+        description: 'Customer was not created.',
       });
-      vm.resetForm();
+    } catch (error) {
+      toast.error(
+        error?.response?.data?.message ||
+          error?.message ||
+          'Failed to create customer'
+      );
     }
   };
 
