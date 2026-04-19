@@ -1,6 +1,12 @@
 import { Card, CardContent } from '../../../components/ui/card';
 
-export default function KPIBox({ title, value, subtitle, accent = false }) {
+export default function KPIBox({
+  title,
+  value,
+  subtitle,
+  accent = false,
+  children,
+}) {
   return (
     <Card
       className={`rounded-3xl border-0 shadow-none ${
@@ -8,25 +14,33 @@ export default function KPIBox({ title, value, subtitle, accent = false }) {
       }`}
     >
       <CardContent className="p-5 md:p-6">
-        <div
-          className={`text-[11px] font-medium uppercase tracking-[0.18em] ${
-            accent ? 'text-blue-100' : 'text-muted-foreground'
-          }`}
-        >
-          {title}
+        <div className={accent ? 'flex items-start justify-between gap-6' : ''}>
+          <div className="min-w-0">
+            <div
+              className={`text-[11px] font-medium uppercase tracking-[0.18em] ${
+                accent ? 'text-blue-100' : 'text-muted-foreground'
+              }`}
+            >
+              {title}
+            </div>
+
+            <div className="mt-3 text-2xl font-semibold tracking-tight md:text-3xl">
+              {value}
+            </div>
+
+            <div
+              className={`mt-3 text-sm ${
+                accent ? 'text-blue-100' : 'text-muted-foreground'
+              }`}
+            >
+              {subtitle}
+            </div>
+          </div>
+
+          {children ? <div className="hidden md:block">{children}</div> : null}
         </div>
 
-        <div className="mt-3 text-2xl font-semibold tracking-tight md:text-3xl">
-          {value}
-        </div>
-
-        <div
-          className={`mt-3 text-sm ${
-            accent ? 'text-blue-100' : 'text-muted-foreground'
-          }`}
-        >
-          {subtitle}
-        </div>
+        {children ? <div className="mt-4 md:hidden">{children}</div> : null}
       </CardContent>
     </Card>
   );
