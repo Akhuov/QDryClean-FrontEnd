@@ -7,6 +7,7 @@ import {
   deleteOrderApi,
   getOrderByIdApi,
   completeOrderApi,
+  getReceiptByIdApi,
 } from '../api/orderApi';
 
 export function useOrderPage() {
@@ -242,22 +243,22 @@ export function useOrderPage() {
     }
   };
 
-  const handleReprint = async (orderId) => {
+  const handlePrint = async (orderId) => {
     try {
-      const data = await getOrderByIdApi(orderId);
+      const data = await getReceiptByIdApi(orderId);
 
       if (data.code !== 0 || !data.response) {
         throw new Error(data.message || 'Failed to load order');
       }
 
-      const order = data.response;
+      const reseipt = data.response;
 
-      if (!order.receiptBase64) {
+      if (!reseipt) {
         toast.error('Receipt data not found');
         return;
       }
 
-      await printReceipt(order.receiptBase64);
+      await printReceipt(reseipt);
       toast.success('Receipt printed successfully');
     } catch (error) {
       toast.error(
@@ -309,6 +310,6 @@ export function useOrderPage() {
     handleEditOrder,
     handleDeleteOrder,
     handleCompleteOrder,
-    handleReprint,
+    handlePrint,
   };
 }

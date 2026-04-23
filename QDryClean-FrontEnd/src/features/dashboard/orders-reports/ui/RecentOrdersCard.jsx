@@ -14,7 +14,7 @@ import {
   TableRow,
 } from '../../../../components/ui/table';
 import axiosInstance from '../../../../shared/api/axiosInstance';
-import StatusBadge from '../../../../components/StatusBadge';
+import OrderStatusBadge from '../../../../components/OrderStatusBadge';
 import { getAxiosErrorMessage } from '../../../../utils/apiHelpers';
 
 export default function RecentOrdersCard() {
@@ -129,7 +129,7 @@ export default function RecentOrdersCard() {
                   </TableCell>
 
                   <TableCell className="text-center">
-                    <StatusBadge status={order.status} />
+                    <OrderStatusBadge status={order.status} />
                   </TableCell>
 
                   <TableCell className="text-right">

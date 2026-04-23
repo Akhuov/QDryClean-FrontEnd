@@ -18,6 +18,7 @@ export default function NewOrderItemForm({
   onCancel,
   onSave,
   formatCurrency,
+  errors = {},
 }) {
   return (
     <div className="rounded-xl border border-border bg-card p-4 shadow-sm">
@@ -29,7 +30,7 @@ export default function NewOrderItemForm({
         <div className="space-y-2">
           <Label>Item Type</Label>
           <Select
-            value={newItem.type}
+            value={newItem.type ?? ''}
             onValueChange={(value) =>
               setNewItem((prev) => ({ ...prev, type: value }))
             }
@@ -50,6 +51,10 @@ export default function NewOrderItemForm({
             </SelectContent>
           </Select>
 
+          {errors.type && (
+            <p className="text-sm text-destructive">{errors.type}</p>
+          )}
+
           {itemTypesError && (
             <p className="text-sm text-destructive">{itemTypesError}</p>
           )}
@@ -65,12 +70,12 @@ export default function NewOrderItemForm({
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="color">Color</Label>
+          <Label htmlFor="colour">Color</Label>
           <Input
-            id="color"
-            value={newItem.color}
+            id="colour"
+            value={newItem.colour ?? ''}
             onChange={(e) =>
-              setNewItem((prev) => ({ ...prev, color: e.target.value }))
+              setNewItem((prev) => ({ ...prev, colour: e.target.value }))
             }
             placeholder="Бежевый"
             className="bg-input-background border-input w-full"
@@ -78,12 +83,12 @@ export default function NewOrderItemForm({
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="brand">Brand</Label>
+          <Label htmlFor="brandName">Brand</Label>
           <Input
-            id="brand"
-            value={newItem.brand}
+            id="brandName"
+            value={newItem.brandName ?? ''}
             onChange={(e) =>
-              setNewItem((prev) => ({ ...prev, brand: e.target.value }))
+              setNewItem((prev) => ({ ...prev, brandName: e.target.value }))
             }
             placeholder="Burberry"
             className="bg-input-background border-input w-full"
@@ -92,17 +97,21 @@ export default function NewOrderItemForm({
       </div>
 
       <div className="mt-4 space-y-2">
-        <Label htmlFor="defects">Defects / Notes</Label>
+        <Label htmlFor="description">Defects / Notes</Label>
         <Textarea
-          id="defects"
-          value={newItem.defects}
+          id="description"
+          value={newItem.description ?? ''}
           onChange={(e) =>
-            setNewItem((prev) => ({ ...prev, defects: e.target.value }))
+            setNewItem((prev) => ({ ...prev, description: e.target.value }))
           }
           placeholder="Пятно на кармане, потертость..."
           className="bg-input-background border-input w-full"
           rows={4}
         />
+
+        {errors.details && (
+          <p className="text-sm text-red-500">{errors.details}</p>
+        )}
       </div>
 
       <div className="mt-4 space-y-2">

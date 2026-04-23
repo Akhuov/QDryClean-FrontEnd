@@ -38,3 +38,8 @@ export const completeOrderApi = async (orderId) => {
 
   return response.data;
 };
+
+export const getReceiptByIdApi = async (id) => {
+  const { data } = await axiosInstance.get(`/orders/${id}/receipt64`);
+  return data;
+};
