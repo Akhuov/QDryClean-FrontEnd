@@ -1,14 +1,26 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { toast } from 'sonner';
 import { EMPTY_NEW_ITEM } from './constants';
 import { formatPhoneInput, getPhoneNumberForRequest } from '../lib/phone';
-import { fetchItemTypesApi, searchCustomerByPhoneApi } from '../api/orderApi';
+import { fetchItemTypesApi, searchCustomerByPhoneApi, getReceiptByIdApi } from '../api/orderApi';
 import { buildCreateOrderPayload, mapNewItemToOrderItem } from '../lib/orderCreateMappers';
+import { printReceipt } from '../../../shared/api/printService';
 
 export function useOrderDialog() {
+  const [paymentMethod, setPaymentMethod] = useState(null);
+
+  const [submitted, setSubmitted] = useState(false);
+  const [itemErrors, setItemErrors] = useState({});
+  const [orderErrors, setOrderErrors] = useState({});
+
   const [phone, setPhone] = useState('+998 ');
   const [items, setItems] = useState([]);
   const [isAddingItem, setIsAddingItem] = useState(false);
   const [newItem, setNewItem] = useState(EMPTY_NEW_ITEM);
+
+  const [paymentStatus, setPaymentStatus] = useState(null);
+  const [paidAmount, setPaidAmount] = useState('');
+  const [note, setNote] = useState('');
 
   const [canCreateCustomer, setCanCreateCustomer] = useState(false);
   const [customer, setCustomer] = useState(null);
@@ -22,19 +34,32 @@ export function useOrderDialog() {
   const itemsEndRef = useRef(null);
   const fileInputRef = useRef(null);
 
+  const isBlank = (value) => !String(value ?? '').trim();
+
+  const isPositiveInteger = (value) => {
+    if (value === null || value === undefined || value === '') return false;
+    return /^\d+$/.test(String(value));
+  };
+
   const selectedItemType = useMemo(() => {
     return itemTypes.find((x) => String(x.id) === String(newItem.type)) || null;
   }, [itemTypes, newItem.type]);
 
   const newItemPrice = selectedItemType?.cost ?? 0;
 
-  const total = useMemo(() => {
-    return items.reduce((sum, item) => sum + item.price, 0) + (isAddingItem ? newItemPrice : 0);
-  }, [items, isAddingItem, newItemPrice]);
+  const itemsTotal = useMemo(() => {
+    return items.reduce((sum, item) => sum + item.price, 0);
+  }, [items]);
+
+  const previewTotal = useMemo(() => {
+    return itemsTotal + (isAddingItem ? newItemPrice : 0);
+  }, [itemsTotal, isAddingItem, newItemPrice]);
+
+  const shouldShowPaymentStatus = items.length > 0;
+  const shouldShowPaidAmount = paymentStatus === 1;
 
   const handlePhoneChange = (value) => {
-    const formatted = formatPhoneInput(value);
-    setPhone(formatted);
+    setPhone(formatPhoneInput(value));
   };
 
   const resetCustomerSearchState = () => {
@@ -49,14 +74,146 @@ export function useOrderDialog() {
     }
   };
 
+  const validateNewItem = (item) => {
+    const errors = {};
+
+    if (isBlank(item.type)) {
+      errors.type = 'Please select item type';
+    }
+
+    const hasAnyDetails =
+      !isBlank(item.colour) ||
+      !isBlank(item.brandName) ||
+      !isBlank(item.description);
+
+    if (!hasAnyDetails) {
+      errors.details = 'Заполните хотя бы одно поле: цвет, бренд или дефекты/заметки';
+    }
+
+    return errors;
+  };
+
+  const currentItemErrors = useMemo(() => {
+    if (!isAddingItem) return {};
+    return validateNewItem(newItem);
+  }, [isAddingItem, newItem]);
+
+  const isNewItemValid = Object.keys(currentItemErrors).length === 0;
+
+  const validateOrder = ({
+    customer,
+    items,
+    paymentStatus,
+    amount,
+    total,
+    isAddingItem,
+    isNewItemValid,
+  }) => {
+    const errors = {};
+
+    if (!customer) {
+      errors.customer = 'Пожалуйста выберите клиента';
+    }
+
+    if (items.length === 0) {
+      errors.items = 'Добавьте хотя бы один предмет';
+    }
+
+    if (items.length > 0 && (paymentStatus === null || paymentStatus === undefined || paymentStatus === '')) {
+      errors.paymentStatus = 'Пожалуйста выберите статус оплаты';
+    }
+
+    if (isAddingItem && !isNewItemValid) {
+      errors.newItem = 'Завершите или отмените форму предмета перед сохранением заказа';
+    }
+
+    if (paymentStatus === 1) {
+      if (!isPositiveInteger(amount)) {
+        errors.amount = 'Сумма оплаты должна быть целым числом';
+      } else {
+        const paymentAmount = Number(amount);
+
+        if (paymentAmount <= 0) {
+          errors.amount = 'Сумма оплаты должна быть больше 0';
+        } else if (paymentAmount >= total) {
+          errors.amount = 'Сумма оплаты должна быть меньше общей суммы';
+        }
+      }
+    }
+
+    return errors;
+  };
+
+  const currentOrderErrors = useMemo(() => {
+    return validateOrder({
+      customer,
+      items,
+      paymentStatus,
+      amount: paidAmount,
+      total: itemsTotal,
+      isAddingItem,
+      isNewItemValid,
+    });
+  }, [customer, items, paymentStatus, paidAmount, itemsTotal, isAddingItem, isNewItemValid]);
+
+  const isOrderValid = Object.keys(currentOrderErrors).length === 0;
+  const isSaveDisabled = !isOrderValid;
+
+  useEffect(() => {
+    if (!submitted) return;
+    setOrderErrors(currentOrderErrors);
+  }, [submitted, currentOrderErrors]);
+
+  useEffect(() => {
+    if (!isAddingItem) return;
+    if (Object.keys(itemErrors).length === 0) return;
+
+    setItemErrors(validateNewItem(newItem));
+  }, [newItem, isAddingItem]);
+
+  useEffect(() => {
+    if (paymentStatus === 0 || paymentStatus === 2 || paymentStatus === null) {
+      setPaidAmount('');
+    }
+  }, [paymentStatus]);
+
+  useEffect(() => {
+    itemsEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [items, isAddingItem]);
+
+  useEffect(() => {
+    return () => {
+      items.forEach((item) => {
+        if (item.photoPreview?.startsWith('blob:')) {
+          URL.revokeObjectURL(item.photoPreview);
+        }
+      });
+
+      if (newItem.photoPreview?.startsWith('blob:')) {
+        URL.revokeObjectURL(newItem.photoPreview);
+      }
+    };
+  }, [items, newItem.photoPreview]);
+
   const resetAllState = () => {
     setPhone('+998 ');
-    setCustomer(null);
-    setCustomerError('');
     setItems([]);
     setIsAddingItem(false);
+
     clearNewItemPhoto();
     setNewItem(EMPTY_NEW_ITEM);
+
+    setCustomer(null);
+    setCustomerError('');
+    setCanCreateCustomer(false);
+
+    setPaymentStatus(null);
+    setPaidAmount('');
+    setNote('');
+
+    setSubmitted(false);
+    setItemErrors({});
+    setOrderErrors({});
 
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
@@ -74,7 +231,9 @@ export function useOrderDialog() {
         throw new Error(data?.message || 'Failed to load item types');
       }
 
-      setItemTypes(data.response ?? []);
+      const responseItems = data.response ?? [];
+      setItemTypes(responseItems);
+      return responseItems;
     } catch (error) {
       setItemTypes([]);
       setItemTypesError(
@@ -82,6 +241,7 @@ export function useOrderDialog() {
         error.message ||
         'Failed to load item types'
       );
+      return [];
     } finally {
       setItemTypesLoading(false);
     }
@@ -130,21 +290,21 @@ export function useOrderDialog() {
   };
 
   const handleStartAddItem = async () => {
-    if (itemTypes.length === 0) {
-      await fetchItemTypes();
-    }
+    const types = itemTypes.length > 0 ? itemTypes : await fetchItemTypes();
 
-    setNewItem((prev) => ({
+    setNewItem({
       ...EMPTY_NEW_ITEM,
-      type: itemTypes[0] ? String(itemTypes[0].id) : prev.type,
-    }));
+      type: types?.[0] ? String(types[0].id) : '',
+    });
 
+    setItemErrors({});
     setIsAddingItem(true);
   };
 
   const handleCancelAddItem = () => {
     clearNewItemPhoto();
     setNewItem(EMPTY_NEW_ITEM);
+    setItemErrors({});
     setIsAddingItem(false);
 
     if (fileInputRef.current) {
@@ -153,12 +313,20 @@ export function useOrderDialog() {
   };
 
   const handleSaveItem = () => {
+    const errors = validateNewItem(newItem);
+    setItemErrors(errors);
+
+    if (Object.keys(errors).length > 0) {
+      return;
+    }
+
     if (!selectedItemType) return;
 
     const createdItem = mapNewItemToOrderItem(newItem, selectedItemType);
 
     setItems((prev) => [...prev, createdItem]);
     setNewItem(EMPTY_NEW_ITEM);
+    setItemErrors({});
     setIsAddingItem(false);
 
     if (fileInputRef.current) {
@@ -176,6 +344,64 @@ export function useOrderDialog() {
 
       return prev.filter((item) => item.id !== itemId);
     });
+  };
+
+  const handleSubmitAttempt = () => {
+    setSubmitted(true);
+    setItemErrors(currentItemErrors);
+    setOrderErrors(currentOrderErrors);
+
+    if (!customer || !isOrderValid) {
+      return null;
+    }
+
+    let safePaidAmount = null;
+
+    if (paymentStatus === 1) {
+      const parsed = Number(paidAmount);
+
+      if (!Number.isFinite(parsed)) {
+        return null; // защита от NaN
+      }
+
+      safePaidAmount = parsed;
+    }
+
+    return buildCreateOrderPayload(customer, items, {
+      note,
+      paymentStatus,
+      amount: safePaidAmount,
+      paymentMethod: paymentMethod ?? 1,
+    });
+  };
+
+  const buildPayload = () => {
+    return handleSubmitAttempt();
+  };
+
+  const handlePrint = async (orderId) => {
+    try {
+      const data = await getReceiptByIdApi(orderId);
+
+      if (data.code !== 0 || !data.response) {
+        throw new Error(data.message || 'Failed to load order');
+      }
+
+      const receipt = data.response;
+
+      if (!receipt) {
+        toast.error('Receipt data not found');
+        return;
+      }
+
+      await printReceipt(receipt);
+    } catch (error) {
+      toast.error(
+        error.response?.data?.message ||
+        error.message ||
+        'Failed to print receipt'
+      );
+    }
   };
 
   const handlePhotoChange = (e) => {
@@ -207,36 +433,19 @@ export function useOrderDialog() {
     }
   };
 
-  const buildPayload = () => {
-    if (!customer || items.length === 0) return null;
-
-    return buildCreateOrderPayload(customer, items);
-  };
-
-  useEffect(() => {
-    itemsEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [items, isAddingItem]);
-
-  useEffect(() => {
-    return () => {
-      items.forEach((item) => {
-        if (item.photoPreview?.startsWith('blob:')) {
-          URL.revokeObjectURL(item.photoPreview);
-        }
-      });
-
-      if (newItem.photoPreview?.startsWith('blob:')) {
-        URL.revokeObjectURL(newItem.photoPreview);
-      }
-    };
-  }, [items, newItem.photoPreview]);
-
   return {
+    paymentStatus,
+    setPaymentStatus,
+    paidAmount,
+    setPaidAmount,
+    note,
+    setNote,
     phone,
     setPhone,
     items,
     setItems,
     customer,
+    setCustomer,
     searchingCustomer,
     itemTypes,
     itemTypesLoading,
@@ -246,11 +455,21 @@ export function useOrderDialog() {
     setNewItem,
     selectedItemType,
     newItemPrice,
-    total,
+    itemsTotal,
+    previewTotal,
+    total: previewTotal,
     itemsEndRef,
     fileInputRef,
     canCreateCustomer,
     customerError,
+    setCustomerError,
+    setCanCreateCustomer,
+    itemErrors,
+    orderErrors,
+    submitted,
+    shouldShowPaymentStatus,
+    shouldShowPaidAmount,
+    isSaveDisabled,
     handlePhoneChange,
     handleSearchCustomer,
     handleStartAddItem,
@@ -260,9 +479,7 @@ export function useOrderDialog() {
     handlePhotoChange,
     handleRemovePhoto,
     buildPayload,
-    setCustomer,
-    setCustomerError,
-    setCanCreateCustomer,
-    resetAllState
+    resetAllState,
+    handlePrint,
   };
 }

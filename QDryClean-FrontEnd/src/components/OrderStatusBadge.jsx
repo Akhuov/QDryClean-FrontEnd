@@ -35,7 +35,7 @@ export const statusMap = {
   },
 };
 
-export default function StatusBadge({ status }) {
+export default function OrderStatusBadge({ status }) {
   const meta = statusMap[status] ?? { label: `Status ${status}`, badge: 'bg-muted text-muted-foreground' };
   return <span className={`px-3 py-1 rounded-full text-sm ${meta.badge}`}>{meta.label}</span>;
 }

@@ -15,7 +15,10 @@ import {
 import { cn } from '../../../components/ui/utils';
 
 const getValue = (value, fallback = 'Не указан') => {
-  if (value === null || value === undefined || value === '') return fallback;
+  if (value === null || value === undefined || String(value).trim() === '') {
+    return fallback;
+  }
+
   return value;
 };
 
@@ -36,42 +39,36 @@ const getStatusConfig = (status) => {
         cardClass: 'border-l-4 border-l-sky-500 bg-card',
         badgeClass: 'bg-sky-100 text-sky-700 border-sky-200',
       };
-
     case ITEM_STATUS.Packed:
       return {
         label: 'Packed',
         cardClass: 'border-l-4 border-l-emerald-500 bg-card',
         badgeClass: 'bg-emerald-100 text-emerald-700 border-emerald-200',
       };
-
     case ITEM_STATUS.Issued:
       return {
         label: 'Issued',
         cardClass: 'border-l-4 border-l-slate-500 bg-card',
         badgeClass: 'bg-slate-100 text-slate-700 border-slate-200',
       };
-
     case ITEM_STATUS.Reprocessing:
       return {
         label: 'Reprocessing',
         cardClass: 'border-l-4 border-l-amber-500 bg-card',
         badgeClass: 'bg-amber-100 text-amber-700 border-amber-200',
       };
-
     case ITEM_STATUS.Damaged:
       return {
         label: 'Damaged',
         cardClass: 'border-l-4 border-l-red-500 bg-card',
         badgeClass: 'bg-red-100 text-red-700 border-red-200',
       };
-
     case ITEM_STATUS.Lost:
       return {
         label: 'Lost',
         cardClass: 'border-l-4 border-l-rose-600 bg-card',
         badgeClass: 'bg-rose-100 text-rose-700 border-rose-200',
       };
-
     default:
       return {
         label: 'Unknown',
@@ -83,14 +80,17 @@ const getStatusConfig = (status) => {
 
 const OrderItemCard = forwardRef(
   ({ item, onDelete, formatCurrency, onPreviewPhoto }, ref) => {
-    const typeName = item.typeName ?? item.itemTypeName ?? '';
-    const title = item.title ?? item.itemTypeName ?? item.typeName ?? '';
-    const color = item.color ?? item.colour ?? '';
-    const brand = item.brand ?? item.brandName ?? '';
-    const defects = item.defects ?? item.description ?? '';
+    const title = item.itemTypeName ?? item.typeName ?? item.title ?? '';
+    const colour = item.colour ?? '';
+    const brandName = item.brandName ?? '';
+    const description = item.description ?? '';
     const price = item.price ?? item.cost ?? 0;
 
-    const statusConfig = getStatusConfig(item.status);
+    const hasPhoto =
+      Boolean(item.photoPreview) ||
+      (Array.isArray(item.photos) && item.photos.length > 0);
+
+    const statusConfig = getStatusConfig(item.status ?? 0);
 
     return (
       <div
@@ -119,19 +119,19 @@ const OrderItemCard = forwardRef(
 
             <div className="mt-2 space-y-1">
               <p className="truncate text-sm text-muted-foreground">
-                Цвет: {getValue(color)}
+                Цвет: {getValue(colour)}
               </p>
               <p className="truncate text-sm text-muted-foreground">
-                Бренд: {getValue(brand)}
+                Бренд: {getValue(brandName)}
               </p>
               <p className="truncate text-sm text-muted-foreground">
-                Дефекты: {getValue(defects, 'Нет заметок')}
+                Дефекты: {getValue(description, 'Нет заметок')}
               </p>
             </div>
           </div>
 
           <div className="flex shrink-0 items-start gap-2">
-            {item.photoPreview && (
+            {hasPhoto && (
               <Button
                 type="button"
                 size="icon"

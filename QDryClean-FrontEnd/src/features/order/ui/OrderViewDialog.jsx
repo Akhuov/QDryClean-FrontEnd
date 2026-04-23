@@ -1,6 +1,6 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../../../components/ui/dialog';
 import { Button } from '../../../components/ui/button';
-import StatusBadge from '../../../components/StatusBadge';
+import OrderStatusBadge from '../../../components/OrderStatusBadge';
 import CustomerCard from './CustomerCard';
 import { formatCurrency } from '../lib/currency';
 import { formatPhoneDisplay } from '../lib/phone';
@@ -180,7 +180,7 @@ export default function OrderViewDialog({
                       <div>
                         <p className="text-xs text-muted-foreground">Status</p>
                         <div className="mt-1">
-                          <StatusBadge status={order.status} />
+                          <OrderStatusBadge status={order.status} />
                         </div>
                       </div>
 

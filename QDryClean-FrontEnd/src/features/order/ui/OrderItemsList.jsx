@@ -29,7 +29,18 @@ export default function OrderItemsList({
         <button
           type="button"
           onClick={onStartAddItem}
-          className="flex w-full items-center justify-center gap-2 rounded-xl border border-dashed border-input bg-background px-4 py-4 text-base font-medium text-primary transition hover:bg-accent"
+          className="
+            flex w-full items-center justify-center gap-2
+            rounded-xl border border-dashed border-slate-300
+            bg-white px-4 py-5 text-base font-medium text-slate-700
+            transition-all duration-200
+
+            hover:border-blue-400
+            hover:bg-blue-50
+            hover:text-blue-700
+            hover:shadow-md
+            active:scale-[0.98]
+          "
         >
           <Plus className="h-5 w-5" />
           Add New Item

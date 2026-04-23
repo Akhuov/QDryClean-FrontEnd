@@ -16,7 +16,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '../components/ui/select';
-import StatusBadge from '../components/StatusBadge';
+import OrderStatusBadge from '../components/OrderStatusBadge';
 import OrderFormDialog from '../features/order/ui/OrderFormDialog';
 import OrderViewDialog from '../features/order/ui/OrderViewDialog';
 import OrdersSearchToolbar from '../features/order/ui/OrdersSearchToolbar';
@@ -34,7 +34,7 @@ import {
 } from '../components/ui/alert-dialog';
 
 const PAGE_SIZE_OPTIONS = [10, 25, 50, 100];
-const STATUS_OPTIONS = [
+const ORDER_STATUS_OPTIONS = [
   { value: 'all', label: 'All' },
   { value: '0', label: 'Draft' },
   { value: '1', label: 'Created' },
@@ -44,6 +44,15 @@ const STATUS_OPTIONS = [
   { value: '5', label: 'Canceled' },
   { value: '6', label: 'Donated' },
 ];
+
+const PAYMENT_STATUS_OPTIONS = [
+  { value: '0', label: 'Unpaid' },
+  { value: '1', label: 'Partially Paid' },
+  { value: '2', label: 'Paid' },
+];
+
+
+
 
 export default function OrdersPage() {
   const vm = useOrderPage();
@@ -102,7 +111,7 @@ export default function OrdersPage() {
                   <SelectValue placeholder="Select status" />
                 </SelectTrigger>
                 <SelectContent>
-                  {STATUS_OPTIONS.map((status) => (
+                  {ORDER_STATUS_OPTIONS.map((status) => (
                     <SelectItem key={status.value} value={status.value}>
                       {status.label}
                     </SelectItem>
@@ -183,7 +192,7 @@ export default function OrdersPage() {
                     </TableCell>
 
                     <TableCell className="text-center">
-                      <StatusBadge status={order.status} />
+                      <OrderStatusBadge status={order.status} />
                     </TableCell>
 
                     <TableCell className="text-right">{order.totalCost}</TableCell>
@@ -205,7 +214,7 @@ export default function OrdersPage() {
                             variant="outline"
                             size="icon"
                             title="Reprint"
-                            onClick={() => vm.handleReprint(order.id)}
+                            onClick={() => vm.handlePrint(order.id)}
                           >
                             <Printer className="h-4 w-4" />
                           </Button>
