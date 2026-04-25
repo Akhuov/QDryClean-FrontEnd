@@ -19,7 +19,7 @@ export default function OrdersSearchToolbar({
           <Input
             value={searchQuery}
             onChange={(e) => onSearchChange(e.target.value)}
-            placeholder="Search orders..."
+            placeholder="Поиск заказов..."
             className="pl-9 pr-9"
           />
 

@@ -158,7 +158,7 @@ export default function CustomersPage() {
       const data = await createCustomerApi(payload);
 
       if (data?.code !== 0) {
-        throw new Error(data?.message || 'Failed to create customer');
+        throw new Error(data?.message || 'Ошибка при создании клиента');
       }
 
       setIsCreateOpen(false);
@@ -176,7 +176,7 @@ export default function CustomersPage() {
       toast.error(
         error.response?.data?.message ||
           error.message ||
-          'Failed to create customer'
+          'Не удалось создать клиента'
       );
       return null;
     } finally {
@@ -193,7 +193,7 @@ export default function CustomersPage() {
       const data = await getCustomerByIdApi(customerId);
 
       if (data?.code !== 0) {
-        throw new Error(data?.message || 'Failed to load customer');
+        throw new Error(data?.message || 'Не удалось загрузить данные клиента');
       }
 
       setSelectedCustomer(data.response ?? data.responseBody ?? null);
@@ -201,7 +201,7 @@ export default function CustomersPage() {
       toast.error(
         error.response?.data?.message ||
           error.message ||
-          'Failed to load customer details'
+          'Не удалось загрузить данные клиента'
       );
       setIsViewOpen(false);
     } finally {
@@ -220,8 +220,8 @@ export default function CustomersPage() {
     <div className="p-8 space-y-8">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-semibold text-foreground">Customers</h1>
-          <p className="text-muted-foreground mt-1">Create and manage customers.</p>
+          <h1 className="text-3xl font-semibold text-foreground">Клиенты</h1>
+          <p className="text-muted-foreground mt-1">Создание и управление клиентами.</p>
         </div>
       </div>
 
@@ -247,7 +247,7 @@ export default function CustomersPage() {
               className="h-10 w-full lg:w-auto flex items-center gap-2 border border-border"
             >
               <Plus className="h-4 w-4" />
-              Create Customer
+              Создать клиента
             </Button>
           </CustomerCreateDialog>
         </div>
@@ -255,16 +255,16 @@ export default function CustomersPage() {
 
       <Card className="border-border shadow-sm">
         <CardHeader className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <CardTitle className="text-foreground">Customers</CardTitle>
+          <CardTitle className="text-foreground">Клиенты</CardTitle>
 
           <div className="flex items-center gap-3">
             <span className="text-sm text-muted-foreground whitespace-nowrap">
-              Table Size
+              Размер таблицы
             </span>
 
             <Select value={String(pageSize)} onValueChange={handlePageSizeChange}>
               <SelectTrigger className="w-[100px]">
-                <SelectValue placeholder="Size" />
+                <SelectValue placeholder="Размер" />
               </SelectTrigger>
               <SelectContent>
                 {PAGE_SIZE_OPTIONS.map((size) => (
@@ -284,10 +284,10 @@ export default function CustomersPage() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Full Name</TableHead>
-                  <TableHead>Phone Number</TableHead>
-                  <TableHead>Additional Phone</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
+                  <TableHead>Имя</TableHead>
+                  <TableHead>Телефон</TableHead>
+                  <TableHead>Дополнительный телефон</TableHead>
+                  <TableHead className="text-right">Действия</TableHead>
                 </TableRow>
               </TableHeader>
 
@@ -329,7 +329,7 @@ export default function CustomersPage() {
                 {customers.length === 0 && (
                   <TableRow>
                     <TableCell colSpan={4} className="py-10 text-center text-muted-foreground">
-                      No customers found
+                      Клиенты не найдены
                     </TableCell>
                   </TableRow>
                 )}
@@ -377,12 +377,12 @@ export default function CustomersPage() {
         <DialogContent className="sm:max-w-[560px] bg-white">
           <DialogHeader>
             <DialogTitle className="text-foreground text-[20px] font-semibold">
-              Customer Details
+              Детали клиента
             </DialogTitle>
           </DialogHeader>
 
           {viewLoading ? (
-            <div className="py-8 text-center text-muted-foreground">Loading...</div>
+            <div className="py-8 text-center text-muted-foreground">Загрузка...</div>
           ) : selectedCustomer ? (
             <div className="space-y-4 py-2">
               <div className="rounded-lg border border-border p-4">
@@ -392,7 +392,7 @@ export default function CustomersPage() {
                   </div>
 
                   <div>
-                    <p className="text-sm text-muted-foreground">Full Name</p>
+                    <p className="text-sm text-muted-foreground">Имя</p>
                     <p className="font-medium text-foreground">
                       {selectedCustomer.fullName || '—'}
                     </p>
@@ -407,7 +407,7 @@ export default function CustomersPage() {
                   </div>
 
                   <div>
-                    <p className="text-sm text-muted-foreground">Phone Number</p>
+                    <p className="text-sm text-muted-foreground">Телефон</p>
                     <p className="font-medium text-foreground">
                       {selectedCustomer.phoneNumber
                         ? formatPhoneDisplay(selectedCustomer.phoneNumber)
@@ -418,7 +418,7 @@ export default function CustomersPage() {
               </div>
 
               <div className="rounded-lg border border-border p-4">
-                <p className="text-sm text-muted-foreground">Additional Phone</p>
+                <p className="text-sm text-muted-foreground">Дополнительный телефон</p>
                 <p className="font-medium text-foreground mt-1">
                   {selectedCustomer.additionalPhoneNumber
                     ? formatPhoneDisplay(selectedCustomer.additionalPhoneNumber)
@@ -428,7 +428,7 @@ export default function CustomersPage() {
             </div>
           ) : (
             <div className="py-8 text-center text-muted-foreground">
-              Customer data not found
+              Данные клиента не найдены
             </div>
           )}
         </DialogContent>

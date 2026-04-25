@@ -17,10 +17,10 @@ export default function PackingSearchBar({
         <div className="flex flex-col gap-6 xl:flex-row xl:items-start xl:justify-between">
           <div className="min-w-0">
             <h1 className="text-xl font-semibold text-foreground">
-              Packing Summary
+              Прцесс упаковки
             </h1>
             <p className="mt-1 text-sm text-muted-foreground">
-              Search an order by receipt number and update item packing status.
+              Поиск заказа по номеру чека и обновление статуса упаковки предметов.
             </p>
           </div>
 
@@ -29,7 +29,7 @@ export default function PackingSearchBar({
               htmlFor="receiptNumber"
               className="text-sm font-medium text-foreground"
             >
-              Receipt Number
+              Номер чека
             </Label>
 
             <div className="mt-2 flex flex-col gap-3 sm:flex-row sm:items-center">
@@ -43,7 +43,7 @@ export default function PackingSearchBar({
                   onKeyDown={(e) => {
                     if (e.key === 'Enter') onSearch();
                   }}
-                  placeholder="Enter receipt number"
+                  placeholder="Введите номер чека"
                   className="pl-10"
                 />
               </div>
@@ -54,7 +54,7 @@ export default function PackingSearchBar({
                 disabled={loading}
                 className="sm:min-w-[110px]"
               >
-                {loading ? 'Searching...' : 'Search'}
+                {loading ? 'Поиск...' : 'Поиск'}
               </Button>
             </div>
 

@@ -55,7 +55,7 @@ export function useOrderPage() {
       });
 
       if (res.data?.code !== 0) {
-        throw new Error(res.data?.message || 'API error');
+        throw new Error(res.data?.message || 'Ошибка загрузки заказов');
       }
 
       const resp = res.data.response ?? res.data.responseBody;
@@ -157,7 +157,7 @@ export function useOrderPage() {
       const data = await getOrderByIdApi(orderId);
 
       if (data.code !== 0 || !data.response) {
-        throw new Error(data.message || 'Failed to load order');
+        throw new Error(data.message || 'Ошибка загрузки заказа');
       }
 
       setViewOrder(data.response);
@@ -165,7 +165,7 @@ export function useOrderPage() {
       toast.error(
         error.response?.data?.message ||
           error.message ||
-          'Failed to load order details'
+          'Ошибка загрузки деталей заказа'
       );
       setIsViewOpen(false);
     } finally {
@@ -180,7 +180,7 @@ export function useOrderPage() {
       const data = await getOrderByIdApi(orderId);
 
       if (data.code !== 0 || !data.response) {
-        throw new Error(data.message || 'Failed to load order');
+        throw new Error(data.message || 'Ошибка загрузки заказа');
       }
 
       setDialogMode('edit');
@@ -190,7 +190,7 @@ export function useOrderPage() {
       toast.error(
         error.response?.data?.message ||
           error.message ||
-          'Failed to load order details'
+          'Ошибка загрузки деталей заказа'
       );
     } finally {
       setEditLoading(false);
@@ -202,7 +202,7 @@ export function useOrderPage() {
       const data = await deleteOrderApi(orderId);
 
       if (data.code === 0) {
-        toast.success('Order deleted successfully');
+        toast.success('Заказ успешно удален');
 
         fetchOrders({
           page,
@@ -213,9 +213,9 @@ export function useOrderPage() {
         return;
       }
 
-      toast.error(data.message || 'Failed to delete order');
+      toast.error(data.message || 'Ошибка удаления заказа');
     } catch (error) {
-      toast.error(error.response?.data?.message || 'Failed to delete order');
+      toast.error(error.response?.data?.message || 'Ошибка удаления заказа');
     }
   };
 
@@ -224,7 +224,7 @@ export function useOrderPage() {
       const data = await completeOrderApi(orderId);
 
       if (data.code === 0) {
-        toast.success('Order completed successfully');
+        toast.success('Заказ успешно закрыт');
 
         await fetchOrders({
           page,
@@ -235,10 +235,10 @@ export function useOrderPage() {
         return;
       }
 
-      toast.error(data.message || 'Failed to closed order');
+      toast.error(data.message || 'Ошибка закрытия заказа');
     } catch (error) {
       toast.error(
-        error.response?.data?.message || error.message || 'Failed to closed order'
+        error.response?.data?.message || error.message || 'Ошибка закрытия заказа'
       );
     }
   };
@@ -254,17 +254,17 @@ export function useOrderPage() {
       const reseipt = data.response;
 
       if (!reseipt) {
-        toast.error('Receipt data not found');
+        toast.error('Данные чека не найдены');
         return;
       }
 
       await printReceipt(reseipt);
-      toast.success('Receipt printed successfully');
+      toast.success('Чек успешно распечатан');
     } catch (error) {
       toast.error(
         error.response?.data?.message ||
           error.message ||
-          'Failed to print receipt'
+          'Ошибка печати чека'
       );
     }
   };

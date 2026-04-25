@@ -19,7 +19,7 @@ export default function PackingOrderSummary({
               <div className="mb-3 flex items-center gap-2 text-muted-foreground">
                 <ReceiptText className="h-4 w-4" />
                 <span className="text-xs font-medium uppercase tracking-wide">
-                  Receipt Number
+                  Номер чека
                 </span>
               </div>
 
@@ -32,7 +32,7 @@ export default function PackingOrderSummary({
               <div className="mb-3 flex items-center gap-2 text-blue-600">
                 <PackageCheck className="h-4 w-4" />
                 <span className="text-xs font-medium uppercase tracking-wide">
-                  Total Items
+                  Всего предметов
                 </span>
               </div>
 
@@ -57,7 +57,7 @@ export default function PackingOrderSummary({
               >
                 <CheckCircle2 className="h-4 w-4" />
                 <span className="text-xs font-medium uppercase tracking-wide">
-                  Selection Status
+                  Статус выбора
                 </span>
               </div>
 
@@ -67,7 +67,7 @@ export default function PackingOrderSummary({
                   hasSelection ? 'text-emerald-700' : 'text-foreground'
                 )}
               >
-                {hasSelection ? 'Items selected' : 'No items selected'}
+                {hasSelection ? 'Выбрано предметов' : 'Не выбрано предметов'}
               </p>
             </div>
           </div>
@@ -76,8 +76,8 @@ export default function PackingOrderSummary({
         <div className="flex flex-col gap-3 border-t px-6 py-4 sm:flex-row sm:items-center sm:justify-between">
           <p className="text-sm text-muted-foreground">
             {hasSelection
-              ? 'Selected items will be marked as Packed.'
-              : 'Select one or more items to continue.'}
+              ? 'Выбранные предметы будут отмечены как упакованные.'
+              : 'Выберите один или несколько предметов для продолжения.'}
           </p>
 
           <Button
@@ -89,7 +89,7 @@ export default function PackingOrderSummary({
               hasSelection && 'bg-emerald-600 hover:bg-emerald-700'
             )}
           >
-            {submitting ? 'Packing...' : 'Submit Packing'}
+            {submitting ? 'Упаковка...' : 'Отправить упаковку'}
           </Button>
         </div>
       </CardContent>

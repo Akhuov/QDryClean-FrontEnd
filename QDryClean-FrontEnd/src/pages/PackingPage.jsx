@@ -16,8 +16,8 @@ export default function PackingPage() {
     <div className="p-8 space-y-8">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-semibold text-foreground">Packing</h1>
-          <p className="text-muted-foreground mt-1">Search order by receipt number and mark items as packed.</p>
+          <h1 className="text-3xl font-semibold text-foreground">Упаковка</h1>
+          <p className="text-muted-foreground mt-1">Поиск заказа по номеру чека и отметка предметов как упакованных.</p>
         </div>
       </div>
 
@@ -42,7 +42,7 @@ export default function PackingPage() {
           <Card className="border-border shadow-sm">
             <CardHeader>
               <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
-                <CardTitle className="text-foreground">Items</CardTitle>
+                <CardTitle className="text-foreground">Вещи</CardTitle>
                 <span className="text-sm text-muted-foreground">
                   {vm.items.length} item(s)
                 </span>

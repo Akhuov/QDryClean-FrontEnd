@@ -24,7 +24,7 @@ export default function CustomerSearchToolbar({
                 onSearch();
               }
             }}
-            placeholder="Search customers by name or phone..."
+            placeholder="Поиск по имени или телефону..."
             className="pl-9 pr-9"
           />
 
@@ -36,7 +36,7 @@ export default function CustomerSearchToolbar({
               onClick={onClear}
               className="absolute right-2 top-1/2 h-7 w-7 -translate-y-1/2 rounded-full"
               aria-label="Clear search"
-              title="Clear search"
+              title="Очистить поиск"
             >
               <X className="h-4 w-4" />
             </Button>

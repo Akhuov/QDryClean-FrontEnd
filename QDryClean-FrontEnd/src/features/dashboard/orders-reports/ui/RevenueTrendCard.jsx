@@ -16,20 +16,20 @@ export default function RevenueTrendCard() {
       <CardContent className="flex h-full flex-col p-5 md:p-6">
         <div className="mb-4 flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
           <div>
-            <h3 className="text-2xl font-semibold tracking-tight">Revenue Trend</h3>
+            <h3 className="text-2xl font-semibold tracking-tight">Динамика доходов</h3>
             <p className="mt-1 text-sm text-muted-foreground">
-              Daily earnings compared to last week
+              Ежедневные доходы по сравнению с прошлой неделей
             </p>
           </div>
 
           <div className="flex items-center gap-4 text-xs text-muted-foreground">
             <div className="flex items-center gap-2">
               <span className="h-2.5 w-2.5 rounded-full bg-blue-700" />
-              Current Week
+              Текущая неделя
             </div>
             <div className="flex items-center gap-2">
               <span className="h-2.5 w-2.5 rounded-full bg-blue-200" />
-              Previous Week
+              Прошлая неделя
             </div>
           </div>
         </div>

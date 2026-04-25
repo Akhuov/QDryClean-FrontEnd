@@ -17,9 +17,9 @@ function formatCurrency(value) {
 
 function RevenueBreakdown({ revenue }) {
   const items = [
-    { label: 'Paid', value: revenue?.paid ?? 0, dot: 'bg-white' },
-    { label: 'Partial', value: revenue?.partiallyPaid ?? 0, dot: 'bg-blue-200' },
-    { label: 'Unpaid', value: revenue?.unpaid ?? 0, dot: 'bg-blue-300/70' },
+    { label: 'Оплачено', value: revenue?.paid ?? 0, dot: 'bg-white' },
+    { label: 'Частично оплачено', value: revenue?.partiallyPaid ?? 0, dot: 'bg-blue-200' },
+    { label: 'Не оплачено', value: revenue?.unpaid ?? 0, dot: 'bg-blue-300/70' },
   ];
 
   return (
@@ -111,7 +111,7 @@ export default function OrdersReportsDashboard({ selectedPeriod }) {
         });
 
         if (res.data?.code !== 0) {
-          throw new Error(res.data?.message || 'Failed to load summary');
+          throw new Error(res.data?.message || 'Не удалось загрузить сводку');
         }
 
         const response = res.data?.response ?? {};
@@ -161,7 +161,7 @@ export default function OrdersReportsDashboard({ selectedPeriod }) {
       <div className="grid grid-cols-1 gap-4 xl:grid-cols-12">
         <div className="xl:col-span-4">
           <KPIBox
-            title="Total Revenue"
+            title="Общий доход"
             value={loadingSummary ? '...' : formatCurrency(summary.totalRevenue.total)}
             subtitle={periodLabel}
             accent
@@ -172,22 +172,22 @@ export default function OrdersReportsDashboard({ selectedPeriod }) {
 
         <div className="grid grid-cols-2 gap-4 md:grid-cols-4 xl:col-span-8">
           <KPIBox
-            title="Total Orders"
+            title="Всего заказов"
             value={loadingSummary ? '...' : summary.totalOrders}
             subtitle={periodLabel}
           />
           <KPIBox
-            title="Active Orders"
+            title="Активные заказы"
             value={loadingSummary ? '...' : summary.activeOrders}
             subtitle="Processing now"
           />
           <KPIBox
-            title="Ready for Pickup"
+            title="Готово к выдаче"
             value={loadingSummary ? '...' : summary.readyOrders}
             subtitle="Waiting for customer"
           />
           <KPIBox
-            title="Completed"
+            title="Завершено"
             value={loadingSummary ? '...' : summary.completedOrders}
             subtitle={periodLabel}
           />

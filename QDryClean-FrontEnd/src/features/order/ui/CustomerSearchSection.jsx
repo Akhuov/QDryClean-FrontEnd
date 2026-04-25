@@ -29,7 +29,7 @@ export default function CustomerSearchSection({
 
   return (
     <div className="space-y-2">
-      <Label htmlFor="customer-phone">Phone Number *</Label>
+      <Label htmlFor="customer-phone">Номер телефона *</Label>
 
       <div className="space-y-3">
         <div className="flex flex-col gap-3 sm:flex-row">
@@ -54,7 +54,7 @@ export default function CustomerSearchSection({
             disabled={isSearchDisabled || searchingCustomer}
             className="h-12 min-w-[120px] rounded-2xl"
           >
-            {searchingCustomer ? 'Searching...' : 'Search'}
+            {searchingCustomer ? 'Поиск...' : 'Поиск'}
           </Button>
         </div>
 
@@ -69,7 +69,7 @@ export default function CustomerSearchSection({
                 onClick={onOpenCreateCustomer}
                 className="rounded-xl"
               >
-                Create new customer
+                Создать клиента
               </Button>
             )}
           </div>
