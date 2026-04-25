@@ -67,11 +67,11 @@ function AppContent() {
   const currentPage = getCurrentPage();
 
   const navigation = [
-    { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard, path: '/dashboard' },
-    { id: 'orders', label: 'Orders', icon: ShoppingCart, path: '/orders' },
-    { id: 'packages', label: 'Packing', icon: Package, path: '/packages' },
-    { id: 'customers', label: 'Customers', icon: Users, path: '/customers' },
-    { id: 'settings', label: 'Settings', icon: Settings, path: '/settings' },
+    { id: 'dashboard', label: 'Панель', icon: LayoutDashboard, path: '/dashboard' },
+    { id: 'orders', label: 'Заказы', icon: ShoppingCart, path: '/orders' },
+    { id: 'packages', label: 'Упаковка', icon: Package, path: '/packages' },
+    { id: 'customers', label: 'Клиенты', icon: Users, path: '/customers' },
+    { id: 'settings', label: 'Настройки', icon: Settings, path: '/settings' },
   ];
 
   const handleNavigation = (path) => {
@@ -189,7 +189,7 @@ function AppContent() {
               path="settings"
               element={
                 <div className="p-6">
-                  <h1 className="text-2xl font-bold">Settings</h1>
+                  <h1 className="text-2xl font-bold">Настройки</h1>
                 </div>
               }
             />
