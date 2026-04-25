@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
 import DashboardTabs from '../features/dashboard/ui/DashboardTabs';
 import OrdersReportsDashboard from '../features/dashboard/orders-reports/ui/OrdersReportsDashboard';
-import InventoryUtilitiesDashboard from '../features/inventory-utilities/ui/InventoryUtilitiesDashboard';
+import InventoryUtilitiesDashboard from '../features/dashboard/inventory-utilities/ui/InventoryUtilitiesDashboard';
 import DateRangePicker from '../components/ui/DateRangePicker';
 
 export default function DashboardPage() {

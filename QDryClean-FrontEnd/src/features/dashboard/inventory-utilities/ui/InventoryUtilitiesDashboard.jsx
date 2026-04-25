@@ -1,7 +1,7 @@
-import { Card, CardContent } from '../../../components/ui/card';
+import { Card, CardContent } from '../../../../components/ui/card';
 import { Package, ClipboardList, AlertTriangle } from 'lucide-react';
-import KPIBox from '../../dashboard/ui/KPIBox';
-import AlertItem from '../../dashboard/ui/AlertItem';
+import KPIBox from '../../ui/KPIBox';
+import AlertItem from '../../ui/AlertItem';
 
 export default function InventoryUtilitiesDashboard() {
   return (
