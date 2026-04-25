@@ -10,10 +10,10 @@ import {
 import { Card, CardContent } from '../../../../components/ui/card';
 
 const statusData = [
-  { name: 'Processing', value: 45, color: '#1D4ED8' }, // твой синий
-  { name: 'Ready', value: 24, color: '#F8C59C' },
-  { name: 'Created', value: 12, color: '#B9DCFF' },
-  { name: 'Cancelled', value: 6, color: '#E3E7EE' },
+  { name: 'Обработка', value: 45, color: '#1D4ED8' }, // твой синий
+  { name: 'Готово', value: 24, color: '#F8C59C' },
+  { name: 'Создано', value: 12, color: '#B9DCFF' },
+  { name: 'Отменено', value: 6, color: '#E3E7EE' },
 ];
 
 function CustomTooltip({ active, payload, total }) {
@@ -69,7 +69,7 @@ export default function StatusDistributionCard() {
       <CardContent className="p-6">
         <div className="mb-5">
           <h3 className="text-[30px] font-semibold tracking-tight text-slate-800">
-            Status Distribution
+            Распределение статусов
           </h3>
         </div>
 
@@ -104,7 +104,7 @@ export default function StatusDistributionCard() {
               {total}
             </div>
             <div className="mt-2 text-[11px] uppercase tracking-[0.28em] text-slate-500">
-              Orders
+              Заказы
             </div>
           </div>
         </div>

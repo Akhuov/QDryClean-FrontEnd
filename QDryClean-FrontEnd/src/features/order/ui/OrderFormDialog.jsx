@@ -27,18 +27,18 @@ export default function OrderFormDialog({
   initialOrder = null,
 }) {
   const PAYMENT_STATUS_OPTIONS = [
-    { value: '0', label: 'Not Paid' },
-    { value: '1', label: 'Partial' },
-    { value: '2', label: 'Paid' },
+    { value: '0', label: 'Не оплачено' },
+    { value: '1', label: 'Частично' },
+    { value: '2', label: 'Оплачено' },
   ];
 
   const PAYMENT_METHOD_OPTIONS = [
-    { value: '1', label: 'Cash' },
-    { value: '2', label: 'Card' },
+    { value: '1', label: 'Наличные' },
+    { value: '2', label: 'Карта' },
     { value: '3', label: 'Click' },
     { value: '4', label: 'Payme' },
     { value: '5', label: 'Uzum' },
-    { value: '99', label: 'Other' },
+    { value: '99', label: 'Другое' },
   ];
 
   const vm = useOrderDialog();
@@ -49,14 +49,14 @@ export default function OrderFormDialog({
 
   const isEditMode = mode === 'edit';
 
-  const title = isEditMode ? 'Edit Order' : 'Create Order';
+  const title = isEditMode ? 'Редактировать заказ' : 'Создать заказ';
   const submitText = submitting
-    ? (isEditMode ? 'Saving...' : 'Creating...')
-    : (isEditMode ? 'Save Changes' : 'Create Order');
+    ? (isEditMode ? 'Сохранение...' : 'Создание...')
+    : (isEditMode ? 'Сохранить изменения' : 'Создать заказ');
 
   const dialogDescription = isEditMode
-    ? 'Edit existing order details, items, and customer information'
-    : 'Create new order with customer details and items';
+    ? 'Редактировать существующий заказ с деталями, товарами и информацией о клиенте'
+    : 'Создать новый заказ с информацией о клиенте и товарами';
 
   useEffect(() => {
     if (!open) return;
@@ -129,12 +129,12 @@ export default function OrderFormDialog({
 
   const handleCreateSuccess = async (createdOrder) => {
     if (!createdOrder) {
-      toast.error('Order created, but response payload is empty');
+      toast.error('Заказ создан, но ответ сервера пуст');
       return;
     }
 
     if (!createdOrder.id) {
-      toast.warning('Order created, but order ID is missing');
+      toast.warning('Заказ создан, но ID заказа отсутствует');
       vm.resetAllState?.();
       setIsCreateCustomerOpen(false);
       onOpenChange(false);
@@ -144,17 +144,17 @@ export default function OrderFormDialog({
     try {
       await vm.handlePrint(createdOrder.id);
 
-      toast.success('Order created successfully', {
-        description: 'Receipt printed successfully.',
+      toast.success('Заказ создан успешно', {
+        description: 'Чек распечатан успешно.',
       });
     } catch (printError) {
       console.error('Print failed:', printError);
 
-      toast.warning('Order created, but receipt printing failed', {
+      toast.warning('Заказ создан, но печать чека не удалась', {
         description:
           printError?.response?.data?.message ||
           printError?.message ||
-          'Print service is unavailable',
+          'Служба печати недоступна',
       });
     }
 
@@ -178,8 +178,8 @@ export default function OrderFormDialog({
           return;
         }
 
-        toast.success('Order updated successfully', {
-          description: 'The order has been updated.',
+        toast.success('Заказ успешно обновлен', {
+          description: 'Заказ был успешно обновлен.',
         });
 
         vm.resetAllState?.();
@@ -387,7 +387,7 @@ export default function OrderFormDialog({
                       {vm.shouldShowPaidAmount && (
                         <div className="space-y-2">
                           <Label className="text-sm font-medium text-slate-700">
-                            Paid Amount *
+                            Сумма оплаты *
                           </Label>
 
                           <div className="relative">
@@ -444,12 +444,12 @@ export default function OrderFormDialog({
                           transition-all duration-200
                         "
                       >
-                        + Add note
+                        + Добавить заметку
                       </Button>
                     ) : (
                       <div className="space-y-2">
                         <div className="flex items-center justify-between">
-                          <Label>Notes</Label>
+                          <Label>Заметки</Label>
 
                           {!vm.note?.trim() && (
                             <Button
@@ -467,7 +467,7 @@ export default function OrderFormDialog({
                               onClick={() => setIsNoteOpen(false)}
                               disabled={submitting}
                             >
-                              Hide
+                              Скрыть
                             </Button>
                           )}
                         </div>
@@ -476,7 +476,7 @@ export default function OrderFormDialog({
                           value={vm.note}
                           onChange={(e) => vm.setNote(e.target.value)}
                           disabled={submitting}
-                          placeholder="Additional notes for this order"
+                          placeholder="Дополнительные заметки для этого заказа"
                           rows={3}
                         />
                       </div>

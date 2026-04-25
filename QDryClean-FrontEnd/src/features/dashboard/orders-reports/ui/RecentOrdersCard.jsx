@@ -59,19 +59,19 @@ export default function RecentOrdersCard() {
     <Card className="rounded-[28px] border border-white/60 bg-white shadow-[0_10px_35px_rgba(15,23,42,0.04)]">
       <CardHeader className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <CardTitle className="text-[30px] font-semibold tracking-tight text-slate-800">
-          Recent Orders
+          Последние заказы
         </CardTitle>
 
         <div className="flex items-center gap-3">
           <Button variant="default" className="rounded-xl cursor-pointer">
-            Export CSV
+            Экспорт CSV
           </Button>
           <Button
             variant="default"
             className="rounded-xl cursor-pointer"
             onClick={() => navigate('/orders')}
           >
-            All Orders
+            Все заказы
           </Button>
         </div>
       </CardHeader>
@@ -85,15 +85,15 @@ export default function RecentOrdersCard() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Customer</TableHead>
-                <TableHead>Phone</TableHead>
-                <TableHead>Receipt Number</TableHead>
-                <TableHead>Created Date</TableHead>
-                <TableHead>Expected Date</TableHead>
-                <TableHead className="text-center">Items</TableHead>
-                <TableHead className="text-center">Status</TableHead>
-                <TableHead className="text-right">Total Cost</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
+                <TableHead>Клиент</TableHead>
+                <TableHead>Телефон</TableHead>
+                <TableHead>Номер чека</TableHead>
+                <TableHead>Дата создания</TableHead>
+                <TableHead>Ожидаемая дата</TableHead>
+                <TableHead className="text-center">Количество предметов</TableHead>
+                <TableHead className="text-center">Статус</TableHead>
+                <TableHead className="text-right">Общая стоимость</TableHead>
+                <TableHead className="text-right">Действия</TableHead>
               </TableRow>
             </TableHeader>
 
@@ -155,7 +155,7 @@ export default function RecentOrdersCard() {
               {orders.length === 0 && (
                 <TableRow>
                   <TableCell colSpan={9} className="py-10 text-center text-muted-foreground">
-                    No orders found
+                    Заказы не найдены
                   </TableCell>
                 </TableRow>
               )}

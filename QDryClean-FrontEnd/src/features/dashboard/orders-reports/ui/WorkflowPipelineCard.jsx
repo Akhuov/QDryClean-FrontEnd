@@ -7,11 +7,11 @@ export default function WorkflowPipelineCard() {
       <CardContent className="flex h-full flex-col p-5 md:p-6">
         <div className="mb-4 flex items-center justify-between">
           <h2 className="text-2xl font-semibold tracking-tight text-foreground">
-            Workflow Pipeline
+            Дорожная карта
           </h2>
 
           <button className="text-sm font-medium text-blue-600 hover:underline">
-            Manage Stages
+            Управление стадиями
           </button>
         </div>
 

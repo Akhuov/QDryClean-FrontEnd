@@ -35,20 +35,20 @@ import {
 
 const PAGE_SIZE_OPTIONS = [10, 25, 50, 100];
 const ORDER_STATUS_OPTIONS = [
-  { value: 'all', label: 'All' },
-  { value: '0', label: 'Draft' },
-  { value: '1', label: 'Created' },
-  { value: '2', label: 'In Progress' },
-  { value: '3', label: 'Ready' },
-  { value: '4', label: 'Completed' },
-  { value: '5', label: 'Canceled' },
-  { value: '6', label: 'Donated' },
+  { value: 'all', label: 'Все' },
+  { value: '0', label: 'Черновик' },
+  { value: '1', label: 'Создан' },
+  { value: '2', label: 'В процессе' },
+  { value: '3', label: 'Готов' },
+  { value: '4', label: 'Завершен' },
+  { value: '5', label: 'Отменен' },
+  { value: '6', label: 'Подарен' },
 ];
 
 const PAYMENT_STATUS_OPTIONS = [
-  { value: '0', label: 'Unpaid' },
-  { value: '1', label: 'Partially Paid' },
-  { value: '2', label: 'Paid' },
+  { value: '0', label: 'Не оплачен' },
+  { value: '1', label: 'Частично оплачен' },
+  { value: '2', label: 'Оплачен' },
 ];
 
 
@@ -61,8 +61,8 @@ export default function OrdersPage() {
     <div className="p-8 space-y-8">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-semibold text-foreground">Orders</h1>
-          <p className="mt-1 text-muted-foreground">Create and manage orders.</p>
+          <h1 className="text-3xl font-semibold text-foreground">Заказы</h1>
+          <p className="mt-1 text-muted-foreground">Создание и управление заказами.</p>
         </div>
       </div>
 
@@ -90,7 +90,7 @@ export default function OrdersPage() {
               onClick={vm.handleCreateOrder}
             >
               <Plus className="h-4 w-4" />
-              Create Order
+              Создать заказ
             </Button>
           </OrderFormDialog>
         </div>
@@ -98,17 +98,17 @@ export default function OrdersPage() {
 
       <Card className="border-border shadow-sm">
         <CardHeader className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <CardTitle className="text-foreground">Orders</CardTitle>
+          <CardTitle className="text-foreground">Заказы</CardTitle>
 
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
             <div className="flex items-center gap-3">
               <span className="whitespace-nowrap text-sm text-muted-foreground">
-                Status
+                Статус
               </span>
 
               <Select value={vm.selectedStatus} onValueChange={vm.handleStatusChange}>
                 <SelectTrigger className="w-[180px]">
-                  <SelectValue placeholder="Select status" />
+                  <SelectValue placeholder="Выберите статус" />
                 </SelectTrigger>
                 <SelectContent>
                   {ORDER_STATUS_OPTIONS.map((status) => (
@@ -122,12 +122,12 @@ export default function OrdersPage() {
 
             <div className="flex items-center gap-3">
               <span className="whitespace-nowrap text-sm text-muted-foreground">
-                Table Size
+                Размер таблицы
               </span>
 
               <Select value={String(vm.pageSize)} onValueChange={vm.handlePageSizeChange}>
                 <SelectTrigger className="w-[100px]">
-                  <SelectValue placeholder="Size" />
+                  <SelectValue placeholder="Размер" />
                 </SelectTrigger>
                 <SelectContent>
                   {PAGE_SIZE_OPTIONS.map((size) => (
@@ -148,15 +148,15 @@ export default function OrdersPage() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Customer</TableHead>
-                  <TableHead>Phone</TableHead>
-                  <TableHead>Receipt Number</TableHead>
-                  <TableHead>Created Date</TableHead>
-                  <TableHead>Expected Date</TableHead>
-                  <TableHead className="text-center">Items</TableHead>
-                  <TableHead className="text-center">Status</TableHead>
-                  <TableHead className="text-right">Total Cost</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
+                  <TableHead>Клиент</TableHead>
+                  <TableHead>Телефон</TableHead>
+                  <TableHead>Номер чека</TableHead>
+                  <TableHead>Дата создания</TableHead>
+                  <TableHead>Дата ожидания</TableHead>
+                  <TableHead className="text-center">Позиции</TableHead>
+                  <TableHead className="text-center">Статус</TableHead>
+                  <TableHead className="text-right">Общая стоимость</TableHead>
+                  <TableHead className="text-right">Действия</TableHead>
                 </TableRow>
               </TableHeader>
 
@@ -248,19 +248,19 @@ export default function OrdersPage() {
 
                             <AlertDialogContent>
                               <AlertDialogHeader>
-                                <AlertDialogTitle>Complete order?</AlertDialogTitle>
+                                <AlertDialogTitle>Завершить заказ?</AlertDialogTitle>
                                 <AlertDialogDescription>
-                                  This will change the order status from Ready to Completed.
+                                  Это изменит статус заказа с Готово на Завершено.
                                 </AlertDialogDescription>
                               </AlertDialogHeader>
 
                               <AlertDialogFooter>
-                                <AlertDialogCancel type="button">Cancel</AlertDialogCancel>
+                                <AlertDialogCancel type="button">Отмена</AlertDialogCancel>
                                 <AlertDialogAction
                                   type="button"
                                   onClick={() => vm.handleCompleteOrder(order.id)}
                                 >
-                                  Complete
+                                  Завершить
                                 </AlertDialogAction>
                               </AlertDialogFooter>
                             </AlertDialogContent>
@@ -282,19 +282,19 @@ export default function OrdersPage() {
 
                           <AlertDialogContent>
                             <AlertDialogHeader>
-                              <AlertDialogTitle>Delete order?</AlertDialogTitle>
+                              <AlertDialogTitle>Удалить заказ?</AlertDialogTitle>
                               <AlertDialogDescription>
-                                This action cannot be undone.
+                                Это действие не может быть отменено.
                               </AlertDialogDescription>
                             </AlertDialogHeader>
 
                             <AlertDialogFooter>
-                              <AlertDialogCancel type="button">Cancel</AlertDialogCancel>
+                              <AlertDialogCancel type="button">Отмена</AlertDialogCancel>
                               <AlertDialogAction
                                 type="button"
                                 onClick={() => vm.handleDeleteOrder(order.id)}
                               >
-                                Delete
+                                Удалить
                               </AlertDialogAction>
                             </AlertDialogFooter>
                           </AlertDialogContent>
@@ -307,7 +307,7 @@ export default function OrdersPage() {
                 {vm.orders.length === 0 && (
                   <TableRow>
                     <TableCell colSpan={9} className="py-10 text-center text-muted-foreground">
-                      No orders found
+                      Заказы не найдены
                     </TableCell>
                   </TableRow>
                 )}
@@ -331,7 +331,7 @@ export default function OrdersPage() {
 
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <p className="text-sm text-muted-foreground">
-          Page {vm.page} of {vm.paged.totalPages} • Total {vm.paged.totalCount}
+          Страница {vm.page} из {vm.paged.totalPages} • Всего {vm.paged.totalCount}
         </p>
 
         <div className="flex items-center gap-2">

@@ -38,7 +38,7 @@ export default function NewOrderItemForm({
           >
             <SelectTrigger className="bg-input-background border-input w-full">
               <SelectValue
-                placeholder={itemTypesLoading ? 'Loading item types...' : 'Select item type'}
+                placeholder={itemTypesLoading ? 'Загрузка типов...' : 'Выберите тип'}
               />
             </SelectTrigger>
 
@@ -61,7 +61,7 @@ export default function NewOrderItemForm({
         </div>
 
         <div className="space-y-2">
-          <Label>Price</Label>
+          <Label>Цена</Label>
           <Input
             value={formatCurrency(newItemPrice)}
             readOnly
@@ -70,7 +70,7 @@ export default function NewOrderItemForm({
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="colour">Color</Label>
+          <Label htmlFor="colour">Цвет</Label>
           <Input
             id="colour"
             value={newItem.colour ?? ''}
@@ -83,21 +83,21 @@ export default function NewOrderItemForm({
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="brandName">Brand</Label>
+          <Label htmlFor="brandName">Бренд</Label>
           <Input
             id="brandName"
             value={newItem.brandName ?? ''}
             onChange={(e) =>
               setNewItem((prev) => ({ ...prev, brandName: e.target.value }))
             }
-            placeholder="Burberry"
+            placeholder="Бренд"
             className="bg-input-background border-input w-full"
           />
         </div>
       </div>
 
       <div className="mt-4 space-y-2">
-        <Label htmlFor="description">Defects / Notes</Label>
+        <Label htmlFor="description">Описание / Примечания</Label>
         <Textarea
           id="description"
           value={newItem.description ?? ''}
@@ -115,7 +115,7 @@ export default function NewOrderItemForm({
       </div>
 
       <div className="mt-4 space-y-2">
-        <Label>Photo</Label>
+        <Label>Фото</Label>
 
         <input
           ref={fileInputRef}
@@ -139,11 +139,11 @@ export default function NewOrderItemForm({
           <div className="mt-3 flex items-center gap-3">
             <img
               src={newItem.photoPreview}
-              alt="Preview"
+              alt="Предпросмотр"
               className="h-28 w-28 rounded-lg border object-cover"
             />
             <Button type="button" variant="outline" onClick={onRemovePhoto}>
-              Remove photo
+              Удалить фото
             </Button>
           </div>
         )}
@@ -151,10 +151,10 @@ export default function NewOrderItemForm({
 
       <div className="mt-4 flex justify-end gap-3">
         <Button type="button" variant="outline" onClick={onCancel}>
-          Cancel
+          Отмена
         </Button>
         <Button type="button" onClick={onSave}>
-          Save Item
+          Сохранить
         </Button>
       </div>
     </div>

@@ -78,7 +78,7 @@ export function useOrderDialog() {
     const errors = {};
 
     if (isBlank(item.type)) {
-      errors.type = 'Please select item type';
+      errors.type = 'Выберите тип вещи';
     }
 
     const hasAnyDetails =
@@ -228,7 +228,7 @@ export function useOrderDialog() {
       const data = await fetchItemTypesApi();
 
       if (data?.code !== 0) {
-        throw new Error(data?.message || 'Failed to load item types');
+        throw new Error(data?.message || 'Ошибка загрузки типов вещей');
       }
 
       const responseItems = data.response ?? [];
@@ -239,7 +239,7 @@ export function useOrderDialog() {
       setItemTypesError(
         error.response?.data?.message ||
         error.message ||
-        'Failed to load item types'
+        'Ошибка загрузки типов вещей'
       );
       return [];
     } finally {
@@ -275,7 +275,7 @@ export function useOrderDialog() {
       const data = error.response?.data;
 
       if (data?.code === 1001) {
-        setCustomerError(data.message || 'Customer with this phone number does not exist');
+        setCustomerError(data.message || 'Клиент с таким номером не найден');
         setCanCreateCustomer(true);
       } else if (data?.code === 1000) {
         setCustomerError(data.message);
@@ -384,13 +384,13 @@ export function useOrderDialog() {
       const data = await getReceiptByIdApi(orderId);
 
       if (data.code !== 0 || !data.response) {
-        throw new Error(data.message || 'Failed to load order');
+        throw new Error(data.message || 'Ошибка загрузки чека');
       }
 
       const receipt = data.response;
 
       if (!receipt) {
-        toast.error('Receipt data not found');
+        toast.error('Данные чека не найдены');
         return;
       }
 
@@ -399,7 +399,7 @@ export function useOrderDialog() {
       toast.error(
         error.response?.data?.message ||
         error.message ||
-        'Failed to print receipt'
+        'Ошибка печати чека'
       );
     }
   };

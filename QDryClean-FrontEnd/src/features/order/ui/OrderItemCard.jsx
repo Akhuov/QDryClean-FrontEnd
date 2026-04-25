@@ -35,43 +35,43 @@ const getStatusConfig = (status) => {
   switch (Number(status)) {
     case ITEM_STATUS.Accepted:
       return {
-        label: 'Accepted',
+        label: 'Принято',
         cardClass: 'border-l-4 border-l-sky-500 bg-card',
         badgeClass: 'bg-sky-100 text-sky-700 border-sky-200',
       };
     case ITEM_STATUS.Packed:
       return {
-        label: 'Packed',
+        label: 'Упаковано',
         cardClass: 'border-l-4 border-l-emerald-500 bg-card',
         badgeClass: 'bg-emerald-100 text-emerald-700 border-emerald-200',
       };
     case ITEM_STATUS.Issued:
       return {
-        label: 'Issued',
+        label: 'Выдано',
         cardClass: 'border-l-4 border-l-slate-500 bg-card',
         badgeClass: 'bg-slate-100 text-slate-700 border-slate-200',
       };
     case ITEM_STATUS.Reprocessing:
       return {
-        label: 'Reprocessing',
+        label: 'Переработка',
         cardClass: 'border-l-4 border-l-amber-500 bg-card',
         badgeClass: 'bg-amber-100 text-amber-700 border-amber-200',
       };
     case ITEM_STATUS.Damaged:
       return {
-        label: 'Damaged',
+        label: 'Повреждено',
         cardClass: 'border-l-4 border-l-red-500 bg-card',
         badgeClass: 'bg-red-100 text-red-700 border-red-200',
       };
     case ITEM_STATUS.Lost:
       return {
-        label: 'Lost',
+        label: 'Потеряно',
         cardClass: 'border-l-4 border-l-rose-600 bg-card',
         badgeClass: 'bg-rose-100 text-rose-700 border-rose-200',
       };
     default:
       return {
-        label: 'Unknown',
+        label: 'Неизвестно',
         cardClass: 'border border-border bg-card',
         badgeClass: 'bg-muted text-muted-foreground border-border',
       };
@@ -156,19 +156,19 @@ const OrderItemCard = forwardRef(
 
               <AlertDialogContent className="bg-white">
                 <AlertDialogHeader>
-                  <AlertDialogTitle>Delete item?</AlertDialogTitle>
+                  <AlertDialogTitle>Удалить предмет?</AlertDialogTitle>
                   <AlertDialogDescription>
-                    Are you sure? Entered data for this item will be removed.
+                    Вы уверены? Введенные данные для этого предмета будут удалены.
                   </AlertDialogDescription>
                 </AlertDialogHeader>
 
                 <AlertDialogFooter>
-                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                  <AlertDialogCancel>Отмена</AlertDialogCancel>
                   <AlertDialogAction
                     className="bg-destructive hover:bg-destructive/90"
                     onClick={() => onDelete(item.id)}
                   >
-                    Delete
+                    Удалить
                   </AlertDialogAction>
                 </AlertDialogFooter>
               </AlertDialogContent>

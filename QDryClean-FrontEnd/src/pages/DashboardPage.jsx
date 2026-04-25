@@ -14,14 +14,14 @@ export default function DashboardPage() {
   const currentTitle = useMemo(() => {
     if (activeDashboard === 'inventory') {
       return {
-        title: 'Dashboard',
-        description: 'Overview of inventory, utilities and stock alerts',
+        title: 'Панель управления',
+        description: 'Обзор инвентаря, услуг и оповещений о запасах',
       };
     }
 
     return {
-      title: 'Dashboard',
-      description: 'Overview of orders, performance and operations',
+      title: 'Панель управления',
+      description: 'Обзор заказов, производительности и операций',
     };
   }, [activeDashboard]);
 

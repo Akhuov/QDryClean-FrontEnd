@@ -14,49 +14,49 @@ const getItemStatusConfig = (status) => {
   switch (Number(status)) {
     case ITEM_STATUS.Accepted:
       return {
-        label: 'Accepted',
+        label: 'Принято',
         wrapperClass: 'border-l-4 border-l-sky-500 bg-sky-50',
         badgeClass: 'border-sky-200 bg-sky-100 text-sky-800',
       };
 
     case ITEM_STATUS.Packed:
       return {
-        label: 'Packed',
+        label: 'Упаковано',
         wrapperClass: 'border-l-4 border-l-emerald-500 bg-emerald-50',
         badgeClass: 'border-emerald-200 bg-emerald-100 text-emerald-800',
       };
 
     case ITEM_STATUS.Issued:
       return {
-        label: 'Issued',
+        label: 'Выдано',
         wrapperClass: 'border-l-4 border-l-slate-500 bg-slate-50',
         badgeClass: 'border-slate-200 bg-slate-100 text-slate-800',
       };
 
     case ITEM_STATUS.Reprocessing:
       return {
-        label: 'Reprocessing',
+        label: 'Переработка',
         wrapperClass: 'border-l-4 border-l-amber-500 bg-amber-50',
         badgeClass: 'border-amber-200 bg-amber-100 text-amber-800',
       };
 
     case ITEM_STATUS.Damaged:
       return {
-        label: 'Damaged',
+        label: 'Повреждено',
         wrapperClass: 'border-l-4 border-l-red-500 bg-red-50',
         badgeClass: 'border-red-200 bg-red-100 text-red-800',
       };
 
     case ITEM_STATUS.Lost:
       return {
-        label: 'Lost',
+        label: 'Потеряно',
         wrapperClass: 'border-l-4 border-l-rose-600 bg-rose-50',
         badgeClass: 'border-rose-200 bg-rose-100 text-rose-800',
       };
 
     default:
       return {
-        label: 'Unknown',
+        label: 'Неизвестно',
         wrapperClass: 'border-l-4 border-l-border bg-card',
         badgeClass: 'border-border bg-muted text-muted-foreground',
       };
