@@ -144,9 +144,7 @@ export default function OrderFormDialog({
     try {
       await vm.handlePrint(createdOrder.id);
 
-      toast.success('Заказ создан успешно', {
-        description: 'Чек распечатан успешно.',
-      });
+      toast.success('Заказ создан успешно');
     } catch (printError) {
       console.error('Print failed:', printError);
 

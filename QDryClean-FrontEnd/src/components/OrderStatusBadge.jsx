@@ -1,36 +1,36 @@
 export const statusMap = {
   0: { 
-    label: "Draft", 
+    label: "Черновик", 
     badge: "bg-gray-100 text-gray-700 border border-gray-300" 
   },
 
   1: { 
-    label: "Created", 
+    label: "Создан", 
     badge: "bg-blue-100 text-blue-800 border border-blue-300" 
   },
 
   2: { 
-    label: "InProgress", 
+    label: "В процессе", 
     badge: "bg-amber-100 text-amber-800 border border-amber-300" 
   },
 
   3: { 
-    label: "Ready", 
+    label: "Готов", 
     badge: "bg-cyan-100 text-cyan-800 border border-cyan-300" 
   },
 
   4: { 
-    label: "Completed", 
+    label: "Завершен", 
     badge: "bg-green-100 text-green-800 border border-green-300" 
   },
 
   5: { 
-    label: "Canceled", 
+    label: "Отменен", 
     badge: "bg-red-100 text-red-800 border border-red-300" 
   },
 
   6: { 
-    label: "Donated", 
+    label: "Пожертвован", 
     badge: "bg-purple-100 text-purple-800 border border-purple-300" 
   },
 };
