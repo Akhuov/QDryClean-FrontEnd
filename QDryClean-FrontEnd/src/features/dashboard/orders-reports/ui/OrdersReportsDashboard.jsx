@@ -194,7 +194,7 @@ export default function OrdersReportsDashboard({ selectedPeriod }) {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 gap-4 xl:grid-cols-12">
+      {/* <div className="grid grid-cols-1 gap-4 xl:grid-cols-12">
         <div className="xl:col-span-8 space-y-4">
           <WorkflowPipelineCard selectedPeriod={selectedPeriod} />
           <EfficiencyInsightCard selectedPeriod={selectedPeriod} />
@@ -203,9 +203,9 @@ export default function OrdersReportsDashboard({ selectedPeriod }) {
         <div className="xl:col-span-4">
           <PriorityAlertsCard selectedPeriod={selectedPeriod} />
         </div>
-      </div>
+      </div> */}
 
-      <div className="grid grid-cols-1 gap-4 xl:grid-cols-12">
+      {/* <div className="grid grid-cols-1 gap-4 xl:grid-cols-12">
         <div className="xl:col-span-8">
           <RevenueTrendCard selectedPeriod={selectedPeriod} />
         </div>
@@ -214,7 +214,7 @@ export default function OrdersReportsDashboard({ selectedPeriod }) {
           <PackingEfficiencyCard selectedPeriod={selectedPeriod} />
           <StatusDistributionCard selectedPeriod={selectedPeriod} />
         </div>
-      </div>
+      </div> */}
 
       <RecentOrdersCard selectedPeriod={selectedPeriod} />
     </>

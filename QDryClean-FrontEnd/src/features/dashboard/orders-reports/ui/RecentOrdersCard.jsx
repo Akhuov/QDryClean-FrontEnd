@@ -32,7 +32,7 @@ export default function RecentOrdersCard() {
       const res = await axiosInstance.get('/orders', {
         params: {
           page: 1,
-          pageSize: 5,
+          pageSize: 10,
         },
       });
 

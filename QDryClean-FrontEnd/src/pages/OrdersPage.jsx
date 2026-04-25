@@ -220,7 +220,7 @@ export default function OrdersPage() {
                           </Button>
                         )}
 
-                        {order.status === 1 && (
+                        {/* {order.status === 1 && (
                           <Button
                             type="button"
                             size="sm"
@@ -230,9 +230,9 @@ export default function OrdersPage() {
                           >
                             <Edit className="h-4 w-4 text-muted-foreground" />
                           </Button>
-                        )}
+                        )} */}
 
-                        {order.status === 3 && (
+                        {order.status === 3 && order.paymentStatus === 2 && (
                           <AlertDialog>
                             <AlertDialogTrigger asChild>
                               <Button
@@ -240,7 +240,6 @@ export default function OrdersPage() {
                                 size="sm"
                                 className="h-8 w-8 p-0 hover:bg-muted"
                                 title="Complete"
-                                variant="default"
                               >
                                 <Check className="h-4 w-4" />
                               </Button>

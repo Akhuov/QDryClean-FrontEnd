@@ -29,6 +29,37 @@ const ITEM_STATUS = {
   Lost: 5,
 };
 
+const PAYMENT_STATUS = {
+  NotPaid: 0,
+  PartiallyPaid: 1,
+  Paid: 2,
+};
+
+const getPaymentStatusConfig = (status) => {
+  switch (Number(status)) {
+    case PAYMENT_STATUS.NotPaid:
+      return {
+        label: 'Не оплачено',
+        className: 'bg-red-100 text-red-700 border-red-200',
+      };
+    case PAYMENT_STATUS.PartiallyPaid:
+      return {
+        label: 'Частично оплачено',
+        className: 'bg-amber-100 text-amber-700 border-amber-200',
+      };
+    case PAYMENT_STATUS.Paid:
+      return {
+        label: 'Оплачено',
+        className: 'bg-emerald-100 text-emerald-700 border-emerald-200',
+      };
+    default:
+      return {
+        label: 'Неизвестно',
+        className: 'bg-muted text-muted-foreground border-border',
+      };
+  }
+};
+
 const getItemStatusConfig = (status) => {
   switch (Number(status)) {
     case ITEM_STATUS.Accepted:
@@ -137,11 +168,16 @@ export default function OrderViewDialog({
 }) {
   const items = order?.items || [];
   const notes = order?.notes || [];
+  const invoice = order?.invoice;
 
-  const total = items.reduce((sum, item) => {
+  const paymentStatusConfig = getPaymentStatusConfig(invoice?.paymentStatus);
+
+  const total = invoice?.totalCost ?? items.reduce((sum, item) => {
     const price = item.itemType?.cost ?? 0;
     return sum + price;
   }, 0);
+
+  const debt = Math.max(0, (invoice?.totalCost ?? 0) - (invoice?.amountPaid ?? 0));
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -171,36 +207,59 @@ export default function OrderViewDialog({
                   <div className="rounded-2xl border border-border bg-card p-4 shadow-sm">
                     <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
                       <div>
-                        <p className="text-xs text-muted-foreground">Receipt Number</p>
+                        <p className="text-xs text-muted-foreground">Номер чека</p>
                         <p className="mt-1 text-sm font-medium text-foreground">
                           {getValue(order.receiptNumber)}
                         </p>
                       </div>
 
                       <div>
-                        <p className="text-xs text-muted-foreground">Status</p>
+                        <p className="text-xs text-muted-foreground">Статус</p>
                         <div className="mt-1">
                           <OrderStatusBadge status={order.status} />
                         </div>
                       </div>
 
                       <div>
-                        <p className="text-xs text-muted-foreground">Created At</p>
+                        <p className="text-xs text-muted-foreground">Дата создания</p>
                         <p className="mt-1 text-sm font-medium text-foreground">
                           {formatDate(order.createdAt)}
                         </p>
                       </div>
 
                       <div>
-                        <p className="text-xs text-muted-foreground">Expected Completion</p>
+                        <p className="text-xs text-muted-foreground">Предполагаемая дата завершения</p>
                         <p className="mt-1 text-sm font-medium text-foreground">
                           {formatDate(order.expectedCompletionDate)}
+                        </p>
+                      </div>
+
+                      <div>
+                        <p className="text-xs text-muted-foreground">Статус оплаты</p>
+                        <span
+                          className={`inline-block mt-1 rounded-full border px-2.5 py-1 text-xs font-medium ${paymentStatusConfig.className}`}
+                        >
+                          {paymentStatusConfig.label}
+                        </span>
+                      </div>
+
+                      <div>
+                        <p className="text-xs text-muted-foreground">Сумма оплаты</p>
+                        <p className="mt-1 text-sm font-medium text-foreground">
+                          {formatCurrency(invoice?.amountPaid ?? 0)}
+                        </p>
+                      </div>
+
+                      <div>
+                        <p className="text-xs text-muted-foreground">Долг</p>
+                        <p className={`mt-1 text-sm font-medium ${debt > 0 ? 'text-red-600' : 'text-emerald-600'}`}>
+                          {formatCurrency(debt)}
                         </p>
                       </div>
                     </div>
 
                     <div className="mt-4">
-                      <p className="text-xs text-muted-foreground">Notes</p>
+                      <p className="text-xs text-muted-foreground">Заметки</p>
 
                       {notes.length > 0 ? (
                         <div className="mt-2 space-y-1">
@@ -225,7 +284,7 @@ export default function OrderViewDialog({
 
                   <div className="space-y-3">
                     <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
-                      <h3 className="text-lg font-semibold text-foreground">Items</h3>
+                      <h3 className="text-lg font-semibold text-foreground">Вещи</h3>
                       <span className="text-sm text-muted-foreground">
                         {items.length} item(s)
                       </span>
