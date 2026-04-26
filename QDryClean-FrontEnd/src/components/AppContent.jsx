@@ -69,22 +69,23 @@ export default function AppContent() {
         ${isSidebarOpen ? "w-64" : "w-20"}`}
       >
 
-        {/* TOGGLE BUTTON (НА ЛИНИИ) */}
-        <button
-          onClick={() => setIsSidebarOpen((p) => !p)}
-          className="absolute top-6 -right-3 z-50
-                     w-6 h-12
-                     bg-white border border-slate-200
-                     rounded-full shadow-sm
-                     flex items-center justify-center
-                     hover:bg-slate-50 transition"
-        >
-          {isSidebarOpen ? (
-            <ChevronLeft className="w-4 h-4 text-slate-600" />
-          ) : (
-            <ChevronRight className="w-4 h-4 text-slate-600" />
-          )}
-        </button>
+        {/* SIDEBAR EDGE TOGGLE */}
+        <div className="absolute top-6 -right-3 z-50">
+          <button
+            onClick={() => setIsSidebarOpen((p) => !p)}
+            className="w-6 h-10 bg-white border border-slate-200
+                      rounded-md shadow-sm
+                      flex items-center justify-center
+                      hover:bg-slate-50 hover:border-slate-300
+                      transition"
+          >
+            {isSidebarOpen ? (
+              <ChevronLeft className="w-4 h-4 text-slate-600" />
+            ) : (
+              <ChevronRight className="w-4 h-4 text-slate-600" />
+            )}
+          </button>
+        </div>
 
         <div className="flex items-center px-5 py-4">
 
