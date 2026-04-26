@@ -32,39 +32,28 @@ export default function LoginPage() {
     setError('');
 
     try {
-      // Real API call to backend
       const response = await loginUser(formData);
-      
-      // Store token and user data using authService
-      authService.setAuthData(response.response, response.user);
-      
-      // Navigate to dashboard
+
+      // Store token and role from backend response
+      authService.setAuthData(response.token, response.role);
+
       navigate('/dashboard');
+
     } catch (err) {
-      // Detailed logging for debugging
-      console.error('Login error details:', {
-        status: err.response?.status,
-        statusText: err.response?.statusText,
-        data: err.response?.data,
-        message: err.message,
-        code: err.code
-      });
-      
-      // Handle different error types
       let errorMessage = 'Ошибка при входе в систему';
-      
+
       if (err.response?.status === 401) {
         errorMessage = 'Неверный логин или пароль';
       } else if (err.response?.status === 400) {
-        errorMessage = 'Неверные данные для входа';
+        errorMessage = 'Неверные данные';
       } else if (err.response?.status === 500) {
-        errorMessage = 'Ошибка сервера. Попробуйте позже.';
+        errorMessage = 'Ошибка сервера';
       } else if (err.code === 'NETWORK_ERROR') {
-        errorMessage = 'Ошибка подключения к серверу';
+        errorMessage = 'Нет соединения с сервером';
       } else if (err.response?.data?.message) {
         errorMessage = err.response.data.message;
       }
-      
+
       setError(errorMessage);
     } finally {
       setIsLoading(false);

@@ -1,19 +1,9 @@
-// Сервис для работы с аутентификацией
+// features/auth/authService.js
 
 export const authService = {
-  // Проверка, авторизован ли пользователь
+  // Проверка авторизации
   isAuthenticated() {
-    const token = localStorage.getItem('token');
-    return !!token;
-  },
-
-  // Получение данных пользователя
-  getCurrentUser() {
-    const userStr = localStorage.getItem('user');
-    if (userStr) {
-      return JSON.parse(userStr);
-    }
-    return null;
+    return !!this.getToken();
   },
 
   // Получение токена
@@ -21,15 +11,22 @@ export const authService = {
     return localStorage.getItem('token');
   },
 
-  // Выход из системы
-  logout() {
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
+  // 🔥 Получение роли
+  getRole() {
+    return localStorage.getItem('role');
   },
 
-  // Сохранение данных аутентификации
-  setAuthData(token, user) {
+  // Сохранение данных
+  setAuthData(token, role) {
+    if (!token) return;
+
     localStorage.setItem('token', token);
-    localStorage.setItem('user', JSON.stringify(user));
+    localStorage.setItem('role', role);
+  },
+
+  // Выход
+  logout() {
+    localStorage.removeItem('token');
+    localStorage.removeItem('role');
   }
 };

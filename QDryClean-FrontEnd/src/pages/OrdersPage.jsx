@@ -143,7 +143,7 @@ export default function OrdersPage() {
 
         <CardContent>
           {vm.loading ? (
-            <div className="py-10 text-center text-muted-foreground">Loading...</div>
+            <div className="py-10 text-center text-muted-foreground">Загрузка...</div>
           ) : (
             <Table>
               <TableHeader>

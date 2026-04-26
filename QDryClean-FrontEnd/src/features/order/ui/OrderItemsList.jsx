@@ -43,7 +43,7 @@ export default function OrderItemsList({
           "
         >
           <Plus className="h-5 w-5" />
-          Add New Item
+          Добавить новый предмет
         </button>
       ) : (
         children
