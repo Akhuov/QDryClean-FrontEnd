@@ -11,7 +11,7 @@ import {
   AlertDialogFooter,
   AlertDialogCancel,
   AlertDialogAction,
-} from "../components/ui/alert-dialog";
+} from "../components/ui/AlertDialog";
 import {
   LayoutDashboard,
   ShoppingCart,
