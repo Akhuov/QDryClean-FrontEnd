@@ -299,6 +299,8 @@ export function useOrderPage() {
     canPrev,
     canNext,
 
+    fetchOrders,
+    loadOrders: fetchOrders,
     handleSearchChange,
     handleStatusChange,
     handleSearch,

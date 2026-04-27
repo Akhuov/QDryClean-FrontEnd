@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
-import { Eye } from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle } from '../../../../components/ui/card';
-import { Button } from '../../../../components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '../../../../components/ui/Card';
+import { Button } from '../../../../components/ui/Button';
 import { useOrderPage } from '../../../order/model/useOrderPage';
 import OrderViewDialog from '../../../order/ui/OrderViewDialog';
 import { useNavigate } from 'react-router-dom';
@@ -12,9 +11,10 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from '../../../../components/ui/table';
+} from '../../../../components/ui/Table';
 import axiosInstance from '../../../../shared/api/axiosInstance';
 import OrderStatusBadge from '../../../../components/OrderStatusBadge';
+import PaymentStatusBadge from '../../../../components/PaymentStatusBadge';
 import { getAxiosErrorMessage } from '../../../../utils/apiHelpers';
 
 export default function RecentOrdersCard() {
@@ -55,19 +55,20 @@ export default function RecentOrdersCard() {
     fetchRecentOrders();
   }, [fetchRecentOrders]);
 
+  const formatDate = (date) =>
+    date ? new Date(date).toLocaleDateString('ru-RU') : '—';
+
   return (
-    <Card className="rounded-[28px] border border-white/60 bg-white shadow-[0_10px_35px_rgba(15,23,42,0.04)]">
-      <CardHeader className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <CardTitle className="text-[30px] font-semibold tracking-tight text-slate-800">
-          Последние заказы
-        </CardTitle>
+    <Card className="border-slate-200 shadow-sm bg-white">
+      <CardHeader className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between border-b border-slate-100 pb-6">
+        <CardTitle className="text-lg font-semibold">Последние заказы</CardTitle>
 
         <div className="flex items-center gap-3">
-          <Button variant="default" className="rounded-xl cursor-pointer">
+          <Button variant="outline" className="rounded-xl cursor-pointer">
             Экспорт CSV
           </Button>
           <Button
-            variant="default"
+            variant="outline"
             className="rounded-xl cursor-pointer"
             onClick={() => navigate('/orders')}
           >
@@ -76,85 +77,69 @@ export default function RecentOrdersCard() {
         </div>
       </CardHeader>
 
-      <CardContent>
+      <CardContent className="p-0">
         {loading ? (
-          <div className="py-10 text-center text-muted-foreground">Loading...</div>
+          <div className="py-20 text-center text-slate-400 animate-pulse">Загрузка данных...</div>
         ) : apiError ? (
-          <div className="py-10 text-center text-sm text-red-500">{apiError}</div>
+          <div className="py-20 text-center text-sm text-red-500">{apiError}</div>
         ) : (
           <Table>
-            <TableHeader>
+            <TableHeader className="bg-slate-50/50">
               <TableRow>
-                <TableHead>Клиент</TableHead>
-                <TableHead>Телефон</TableHead>
-                <TableHead>Номер чека</TableHead>
-                <TableHead>Дата создания</TableHead>
-                <TableHead>Ожидаемая дата</TableHead>
-                <TableHead className="text-center">Количество предметов</TableHead>
-                <TableHead className="text-center">Статус</TableHead>
-                <TableHead className="text-right">Общая стоимость</TableHead>
-                <TableHead className="text-right">Действия</TableHead>
+                <TableHead className="pl-6 py-4 text-slate-500 font-medium">Клиент</TableHead>
+                <TableHead className="text-slate-500 font-medium">Номер чека</TableHead>
+                <TableHead className="text-slate-500 font-medium">Дата</TableHead>
+                <TableHead className="text-center text-slate-500 font-medium">Позиции</TableHead>
+                <TableHead className="text-center text-slate-500 font-medium">Статус</TableHead>
+                <TableHead className="text-center text-slate-500 font-medium">Оплата</TableHead>
+                <TableHead className="text-right text-slate-500 font-medium">Стоимость</TableHead>
               </TableRow>
             </TableHeader>
 
             <TableBody>
               {orders.map((order) => (
-                <TableRow key={order.id}>
-                  <TableCell className="text-muted-foreground">
-                    {order.customer?.fullName ?? '—'}
+                <TableRow 
+                  key={order.id}
+                  className="group cursor-pointer hover:bg-slate-100/80 transition-colors border-b border-slate-100 last:border-0 relative"
+                  onClick={() => vm.handleViewOrder(order.id)}
+                >
+                  <TableCell className="pl-6 py-4">
+                    <div className="font-semibold text-slate-900">{order.customer?.fullName}</div>
+                    <div className="text-xs text-slate-400">{order.customer?.phoneNumber}</div>
                   </TableCell>
 
-                  <TableCell className="text-muted-foreground">
-                    {order.customer?.phoneNumber ?? '—'}
+                  <TableCell className="font-mono text-slate-500">
+                    {order.receiptNumber}
                   </TableCell>
 
-                  <TableCell className="text-muted-foreground">
-                    {order.receiptNumber ?? '—'}
+                  <TableCell>
+                    <div className="text-sm text-slate-700">{formatDate(order.createdAt)}</div>
+                    <div className="text-[10px] text-slate-400 uppercase tracking-tighter">
+                      ожид: {formatDate(order.expectedCompletionDate)}
+                    </div>
                   </TableCell>
 
-                  <TableCell className="text-muted-foreground">
-                    {order.createdAt
-                      ? new Date(order.createdAt).toLocaleDateString('ru-RU')
-                      : '—'}
-                  </TableCell>
-
-                  <TableCell className="text-muted-foreground">
-                    {order.expectedCompletionDate
-                      ? new Date(order.expectedCompletionDate).toLocaleDateString('ru-RU')
-                      : '—'}
-                  </TableCell>
-
-                  <TableCell className="text-center text-foreground">
-                    {order.itemsCount ?? 0}
+                  <TableCell className="text-center font-medium text-slate-600">
+                    {order.itemsCount}
                   </TableCell>
 
                   <TableCell className="text-center">
                     <OrderStatusBadge status={order.status} />
                   </TableCell>
 
-                  <TableCell className="text-right">
-                    {order.totalCost ?? '—'}
+                  <TableCell className="text-center">
+                    <PaymentStatusBadge status={order.paymentStatus} />
                   </TableCell>
 
-                  <TableCell className="text-right">
-                    <div className="flex items-center justify-end gap-2">
-                      <Button className="cursor-pointer"
-                        type="button"
-                        variant="default"
-                        size="icon"
-                        title="View"
-                        onClick={() => vm.handleViewOrder(order.id)}
-                      >
-                        <Eye className="h-4 w-4" />
-                      </Button>
-                    </div>
+                  <TableCell className="text-right font-semibold text-slate-900 whitespace-nowrap">
+                    {order.totalCost?.toLocaleString()} <span className="text-[10px] text-slate-400 font-normal">СУМ</span>
                   </TableCell>
                 </TableRow>
               ))}
 
-              {orders.length === 0 && (
+              {!loading && orders.length === 0 && (
                 <TableRow>
-                  <TableCell colSpan={9} className="py-10 text-center text-muted-foreground">
+                  <TableCell colSpan={9} className="py-20 text-center text-slate-400 bg-slate-50/20">
                     Заказы не найдены
                   </TableCell>
                 </TableRow>
@@ -174,7 +159,7 @@ export default function RecentOrdersCard() {
         }}
         order={vm.viewOrder}
         loading={vm.viewLoading}
-        />
+      />
     </Card>
   );
 }

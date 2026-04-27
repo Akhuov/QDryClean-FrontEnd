@@ -1,22 +1,27 @@
 import { Navigate, useLocation } from "react-router-dom";
 import { authService } from "../features/auth/authService";
 
-export default function AuthWrapper({ children }) {
+export default function AuthWrapper({ children, allowedRoles }) {
   const isAuthenticated = authService.isAuthenticated();
+  const userRole = authService.getRole();
   const location = useLocation();
 
-  // Если НЕ авторизован → редирект на login
+  // Если нет токена → редирект на /login
   if (!isAuthenticated) {
-    console.log("AuthWrapper - not authenticated");
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
-  // Если авторизован и попал на /login → редирект на dashboard
+  // Если указаны allowedRoles, проверяем роль
+  if (allowedRoles && allowedRoles.length > 0) {
+    if (!userRole || !allowedRoles.includes(userRole)) {
+      return <Navigate to="/403" replace />;
+    }
+  }
+
+  // Если авторизован и на /login → редирект на /dashboard
   if (isAuthenticated && location.pathname === "/login") {
-    console.log("AuthWrapper - already authenticated");
     return <Navigate to="/dashboard" replace />;
   }
 
-  // Если всё ок — показываем защищённый контент
   return children;
 }

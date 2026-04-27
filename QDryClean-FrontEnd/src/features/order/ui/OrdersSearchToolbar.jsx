@@ -1,5 +1,5 @@
 import { Search, X } from 'lucide-react';
-import { Button } from '../../../components/ui/button';
+import { Button } from '../../../components/ui/Button';
 import { Input } from '../../../components/ui/input';
 
 export default function OrdersSearchToolbar({
@@ -21,20 +21,8 @@ export default function OrdersSearchToolbar({
             onChange={(e) => onSearchChange(e.target.value)}
             placeholder="Поиск заказов..."
             className="pl-9 pr-9"
+            title="Поиск заказов"
           />
-
-          {searchQuery && (
-            <Button
-              variant="ghost"
-              type="button"
-              onClick={onClear}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground transition hover:text-foreground"
-              aria-label="Clear search"
-              title="Clear"
-            >
-              <X className="h-4 w-4" />
-            </Button>
-          )}
         </div>
       </div>
 

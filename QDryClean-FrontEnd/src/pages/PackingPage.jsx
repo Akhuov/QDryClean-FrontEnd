@@ -1,4 +1,4 @@
-import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/Card';
 import PackingItemCard from '../features/packing/ui/PackingItemCard';
 import PackingOrderSummary from '../features/packing/ui/PackingOrderSummary';
 import PackingSearchBar from '../features/packing/ui/PackingSearchBar';

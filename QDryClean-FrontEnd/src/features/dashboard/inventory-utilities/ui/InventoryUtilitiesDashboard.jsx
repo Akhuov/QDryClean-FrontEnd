@@ -1,4 +1,4 @@
-import { Card, CardContent } from '../../../../components/ui/card';
+import { Card, CardContent } from '../../../../components/ui/Card';
 import { Package, ClipboardList, AlertTriangle } from 'lucide-react';
 import KPIBox from '../../ui/KPIBox';
 import AlertItem from '../../ui/AlertItem';

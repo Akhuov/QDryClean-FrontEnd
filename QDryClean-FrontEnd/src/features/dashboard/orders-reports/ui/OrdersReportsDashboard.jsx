@@ -18,7 +18,6 @@ function formatCurrency(value) {
 function RevenueBreakdown({ revenue }) {
   const items = [
     { label: 'Оплачено', value: revenue?.paid ?? 0, dot: 'bg-white' },
-    { label: 'Частично оплачено', value: revenue?.partiallyPaid ?? 0, dot: 'bg-blue-200' },
     { label: 'Не оплачено', value: revenue?.unpaid ?? 0, dot: 'bg-blue-300/70' },
   ];
 
@@ -73,7 +72,6 @@ export default function OrdersReportsDashboard({ selectedPeriod }) {
       total: 0,
       paid: 0,
       unpaid: 0,
-      partiallyPaid: 0,
     },
     totalOrders: 0,
     activeOrders: 0,
@@ -91,7 +89,6 @@ export default function OrdersReportsDashboard({ selectedPeriod }) {
           total: 0,
           paid: 0,
           unpaid: 0,
-          partiallyPaid: 0,
         },
         totalOrders: 0,
         activeOrders: 0,
@@ -135,7 +132,6 @@ export default function OrdersReportsDashboard({ selectedPeriod }) {
             total: 0,
             paid: 0,
             unpaid: 0,
-            partiallyPaid: 0,
           },
           totalOrders: 0,
           activeOrders: 0,

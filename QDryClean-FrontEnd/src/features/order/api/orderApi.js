@@ -43,3 +43,8 @@ export const getReceiptByIdApi = async (id) => {
   const { data } = await axiosInstance.get(`/orders/${id}/receipt64`);
   return data;
 };
+
+export const createPaymentApi = async (orderId, payload) => {
+  const { data } = await axiosInstance.post(`/orders/${orderId}/payments`, payload);
+  return data;
+};
