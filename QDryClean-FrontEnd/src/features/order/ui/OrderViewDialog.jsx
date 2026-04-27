@@ -1,14 +1,18 @@
+import { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../../../components/ui/dialog';
-import { Button } from '../../../components/ui/button';
+import { Button } from '../../../components/ui/Button';
 import OrderStatusBadge from '../../../components/OrderStatusBadge';
 import CustomerCard from './CustomerCard';
+import PaymentDialog from './PaymentDialog';
 import { formatCurrency } from '../lib/currency';
 import { formatPhoneDisplay } from '../lib/phone';
+import { getOrderByIdApi } from '../api/orderApi';
 
 const getValue = (value, fallback = '—') => {
   if (value === null || value === undefined || value === '') return fallback;
   return value;
 };
+
 
 const formatDate = (value) => {
   if (!value) return '—';
@@ -165,7 +169,10 @@ export default function OrderViewDialog({
   onOpenChange,
   order,
   loading = false,
+  onPaymentSuccess,
 }) {
+
+  const [paymentOpen, setPaymentOpen] = useState(false);
   const items = order?.items || [];
   const notes = order?.notes || [];
   const invoice = order?.invoice;
@@ -179,6 +186,12 @@ export default function OrderViewDialog({
 
   const debt = Math.max(0, (invoice?.totalCost ?? 0) - (invoice?.amountPaid ?? 0));
 
+  const handlePaymentSuccess = () => {
+    // Закрываем все диалоги после успешной оплаты и вызываем callback
+    setPaymentOpen(false);
+    onOpenChange(false);
+    onPaymentSuccess?.(); // Вызываем callback для обновления данных
+  };
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
@@ -252,9 +265,17 @@ export default function OrderViewDialog({
 
                       <div>
                         <p className="text-xs text-muted-foreground">Долг</p>
-                        <p className={`mt-1 text-sm font-medium ${debt > 0 ? 'text-red-600' : 'text-emerald-600'}`}>
+                        <button
+                          disabled={debt <= 0}
+                          onClick={() => setPaymentOpen(true)}
+                          className={`mt-1 text-sm font-medium text-left ${
+                            debt > 0
+                              ? "text-red-600 hover:underline cursor-pointer"
+                              : "text-emerald-600 cursor-default"
+                          }`}
+                        >
                           {formatCurrency(debt)}
-                        </p>
+                        </button>
                       </div>
                     </div>
 
@@ -328,6 +349,14 @@ export default function OrderViewDialog({
             </>
           )}
         </div>
+
+        <PaymentDialog
+          open={paymentOpen}
+          onOpenChange={setPaymentOpen}
+          orderId={order?.id}
+          maxAmount={debt}
+          onSuccess={handlePaymentSuccess}
+        />
       </DialogContent>
     </Dialog>
   );

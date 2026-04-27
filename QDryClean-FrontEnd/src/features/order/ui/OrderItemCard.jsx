@@ -1,6 +1,6 @@
 import { forwardRef } from 'react';
 import { Image as ImageIcon, Trash2 } from 'lucide-react';
-import { Button } from '../../../components/ui/button';
+import { Button } from '../../../components/ui/Button';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -11,7 +11,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
   AlertDialogTrigger,
-} from '../../../components/ui/alert-dialog';
+} from '../../../components/ui/AlertDialog';
 import { cn } from '../../../components/ui/utils';
 
 const getValue = (value, fallback = 'Не указан') => {

@@ -7,7 +7,7 @@ import OrderItemsList from './OrderItemsList';
 import OrderSummaryBar from './OrderSummaryBar';
 import CustomerCreateDialog from '../../customer/ui/CustomerCreateDialog';
 import { Label } from '../../../components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../../components/ui/select';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../../components/ui/Select';
 import { Textarea } from '../../../components/ui/textarea';
 import { Input } from '../../../components/ui/input';
 import { createCustomerApi } from '../../customer/api/customerApi';
@@ -16,7 +16,7 @@ import { toast } from 'sonner';
 import { useOrderDialog } from '../model/useOrderDialog';
 import { formatCurrency } from '../lib/currency';
 import { formatPhoneDisplay, getPhoneNumberForRequest } from '../lib/phone';
-import { Button } from '../../../components/ui/button';
+import { Button } from '../../../components/ui/Button';
 
 export default function OrderFormDialog({
   mode = 'create',

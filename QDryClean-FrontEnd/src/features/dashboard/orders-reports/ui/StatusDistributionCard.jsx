@@ -7,7 +7,7 @@ import {
   Tooltip,
   Sector,
 } from 'recharts';
-import { Card, CardContent } from '../../../../components/ui/card';
+import { Card, CardContent } from '../../../../components/ui/Card';
 
 const statusData = [
   { name: 'Обработка', value: 45, color: '#1D4ED8' }, // твой синий
