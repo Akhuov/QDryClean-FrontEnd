@@ -40,11 +40,23 @@ export const completeOrderApi = async (orderId) => {
 };
 
 export const getReceiptByIdApi = async (id) => {
-  const { data } = await axiosInstance.get(`/orders/${id}/receipt64`);
+  const { data } = await axiosInstance.get(`/orders/${id}/receipt-base64`);
   return data;
 };
 
 export const createPaymentApi = async (orderId, payload) => {
   const { data } = await axiosInstance.post(`/orders/${orderId}/payments`, payload);
   return data;
+};
+
+export const analyzePhotoApi = async (file) => {
+  const formData = new FormData();
+  formData.append('photo', file);
+
+  const response = await fetch('orders/analyze-photo', {
+    method: 'POST',
+    body: formData,
+  });
+  
+  return await response.json();
 };

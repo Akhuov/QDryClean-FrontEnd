@@ -313,8 +313,22 @@ export default function OrderFormDialog({
                       itemTypesError={vm.itemTypesError}
                       newItemPrice={vm.newItemPrice}
                       fileInputRef={vm.fileInputRef}
-                      onPhotoChange={vm.handlePhotoChange}
+                      onPhotoChange={async (e) => {
+                        const file = e.target.files?.[0];
+                        if (!file) return;
+
+                        vm.handlePhotoChange(e);
+                        
+                        try {
+                          await vm.handlePhotoAnalysis(file); 
+                        } catch (err) {
+                          console.error("Ошибка при анализе фото:", err);
+                          // Add error message to itemErrors
+                          vm.setItemErrors({ ...vm.itemErrors, photoAnalysis: 'Ошибка при анализе фото' });
+                        }
+                      }}
                       onRemovePhoto={vm.handleRemovePhoto}
+                      isAnalyzing={vm.isAnalyzing}
                       onCancel={vm.handleCancelAddItem}
                       onSave={vm.handleSaveItem}
                       formatCurrency={formatCurrency}
@@ -327,7 +341,6 @@ export default function OrderFormDialog({
                       {vm.orderErrors.items}
                     </p>
                   )}
-
                   {vm.orderErrors?.newItem && (
                     <p className="text-sm text-red-500">
                       {vm.orderErrors.newItem}

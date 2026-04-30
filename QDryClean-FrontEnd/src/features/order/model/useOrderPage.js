@@ -10,18 +10,25 @@ import {
   getReceiptByIdApi,
 } from '../api/orderApi';
 
-export function useOrderPage() {
+export function useOrderPage(initialFrom = null, initialTo = null) {
+  // =========================
+  // ALL STATE HOOKS (must be first)
+  // =========================
+  // VIEW STATE
   const [isViewOpen, setIsViewOpen] = useState(false);
   const [viewOrder, setViewOrder] = useState(null);
   const [viewLoading, setViewLoading] = useState(false);
-
+  
+  // FILTER STATE
   const [searchQuery, setSearchQuery] = useState('');
   const [appliedSearch, setAppliedSearch] = useState('');
-
+  const [from, setFrom] = useState(initialFrom);
+  const [to, setTo] = useState(initialTo);
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
   const [selectedStatus, setSelectedStatus] = useState('all');
-
+  
+  // DATA STATE
   const [loading, setLoading] = useState(false);
   const [apiError, setApiError] = useState('');
   const [paged, setPaged] = useState({
@@ -32,25 +39,24 @@ export function useOrderPage() {
     totalPages: 1,
   });
 
-  const [editLoading, setEditLoading] = useState(false);
-
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [dialogMode, setDialogMode] = useState('create');
-  const [selectedOrder, setSelectedOrder] = useState(null);
-
-  const fetchOrders = useCallback(async ({ page: pageArg, q, pageSize: pageSizeArg, status }) => {
+  // =========================
+  // FETCH (SINGLE SOURCE OF TRUTH)
+  // =========================
+  const fetchOrders = useCallback(async () => {
     setLoading(true);
     setApiError('');
 
     try {
-      const trimmed = String(q ?? '').trim();
+      const trimmed = appliedSearch.trim();
 
       const res = await axiosInstance.get('/orders', {
         params: {
-          page: pageArg,
-          pageSize: pageSizeArg,
+          page,
+          pageSize,
           search: trimmed || undefined,
-          status: status !== 'all' ? Number(status) : undefined,
+          status: selectedStatus !== 'all' ? Number(selectedStatus) : undefined,
+          from: from ?? undefined,
+          to: to ?? undefined,
         },
       });
 
@@ -62,8 +68,8 @@ export function useOrderPage() {
 
       setPaged({
         items: resp?.items ?? [],
-        page: resp?.page ?? pageArg,
-        pageSize: resp?.pageSize ?? pageSizeArg,
+        page: resp?.page ?? page,
+        pageSize: resp?.pageSize ?? pageSize,
         totalCount: resp?.totalCount ?? 0,
         totalPages: resp?.totalPages ?? 1,
       });
@@ -72,53 +78,48 @@ export function useOrderPage() {
       setPaged((prev) => ({
         ...prev,
         items: [],
-        page: 1,
         totalCount: 0,
         totalPages: 1,
       }));
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [page, pageSize, appliedSearch, selectedStatus, from, to]);
 
+  // =========================
+  // AUTO FETCH (FIXED)
+  // =========================
   useEffect(() => {
-    fetchOrders({ page, q: appliedSearch, pageSize, status: selectedStatus });
-  }, [fetchOrders, page, appliedSearch, pageSize, selectedStatus]);
+    fetchOrders();
+  }, [fetchOrders]);
 
+  // =========================
+  // SEARCH DEBOUNCE
+  // =========================
   useEffect(() => {
     const timer = setTimeout(() => {
       const trimmed = searchQuery.trim();
-
-      if (trimmed !== appliedSearch) {
-        setPage(1);
-        setAppliedSearch(trimmed);
-      }
-
-      if (!trimmed && appliedSearch !== '') {
-        setPage(1);
-        setAppliedSearch('');
-      }
+      setPage(1);
+      setAppliedSearch(trimmed);
     }, 400);
 
     return () => clearTimeout(timer);
-  }, [searchQuery, appliedSearch]);
+  }, [searchQuery]);
 
-  const handleSearchChange = (value) => setSearchQuery(value);
+  // =========================
+  // ACTIONS
+  // =========================
+  const handleSearchChange = setSearchQuery;
 
   const handleStatusChange = (value) => {
     setSelectedStatus(value);
     setPage(1);
   };
 
-  const handleSearch = () => {
-    setPage(1);
-    setAppliedSearch(searchQuery.trim());
-  };
-
-  const handleSearchClear = () => {
-    setSearchQuery('');
-    setAppliedSearch('');
-    setPage(1);
+  const handlePageChange = (pageOrFn) => {
+    setPage((prev) =>
+      typeof pageOrFn === 'function' ? pageOrFn(prev) : pageOrFn
+    );
   };
 
   const handlePageSizeChange = (value) => {
@@ -126,28 +127,18 @@ export function useOrderPage() {
     setPage(1);
   };
 
-  const handleCreateOrder = () => {
-    setDialogMode('create');
-    setSelectedOrder(null);
-    setIsModalOpen(true);
-  };
-
   const handleOrderDialogOpenChange = async (isOpen) => {
-    setIsModalOpen(isOpen);
+    setIsViewOpen(isOpen);
 
     if (!isOpen) {
-      setDialogMode('create');
-      setSelectedOrder(null);
-
-      await fetchOrders({
-        page,
-        q: appliedSearch,
-        pageSize,
-        status: selectedStatus,
-      });
+      setViewOrder(null);
+      await fetchOrders();
     }
   };
 
+  // =========================
+  // VIEW ORDER
+  // =========================
   const handleViewOrder = async (orderId) => {
     try {
       setViewLoading(true);
@@ -157,65 +148,31 @@ export function useOrderPage() {
       const data = await getOrderByIdApi(orderId);
 
       if (data.code !== 0 || !data.response) {
-        throw new Error(data.message || 'Ошибка загрузки заказа');
+        throw new Error(data.message);
       }
 
       setViewOrder(data.response);
-    } catch (error) {
-      toast.error(
-        error.response?.data?.message ||
-          error.message ||
-          'Ошибка загрузки деталей заказа'
-      );
+    } catch (err) {
+      toast.error(getAxiosErrorMessage(err));
       setIsViewOpen(false);
     } finally {
       setViewLoading(false);
     }
   };
 
-  const handleEditOrder = async (orderId) => {
-    try {
-      setEditLoading(true);
-
-      const data = await getOrderByIdApi(orderId);
-
-      if (data.code !== 0 || !data.response) {
-        throw new Error(data.message || 'Ошибка загрузки заказа');
-      }
-
-      setDialogMode('edit');
-      setSelectedOrder(data.response);
-      setIsModalOpen(true);
-    } catch (error) {
-      toast.error(
-        error.response?.data?.message ||
-          error.message ||
-          'Ошибка загрузки деталей заказа'
-      );
-    } finally {
-      setEditLoading(false);
-    }
-  };
-
+  // =========================
+  // DELETE / COMPLETE
+  // =========================
   const handleDeleteOrder = async (orderId) => {
     try {
       const data = await deleteOrderApi(orderId);
 
       if (data.code === 0) {
-        toast.success('Заказ успешно удален');
-
-        fetchOrders({
-          page,
-          q: appliedSearch,
-          pageSize,
-          status: selectedStatus,
-        });
-        return;
+        toast.success('Заказ удалён');
+        fetchOrders();
       }
-
-      toast.error(data.message || 'Ошибка удаления заказа');
-    } catch (error) {
-      toast.error(error.response?.data?.message || 'Ошибка удаления заказа');
+    } catch (err) {
+      toast.error(getAxiosErrorMessage(err));
     }
   };
 
@@ -224,94 +181,86 @@ export function useOrderPage() {
       const data = await completeOrderApi(orderId);
 
       if (data.code === 0) {
-        toast.success('Заказ успешно закрыт');
-
-        await fetchOrders({
-          page,
-          q: appliedSearch,
-          pageSize,
-          status: selectedStatus,
-        });
-        return;
+        toast.success('Заказ завершён');
+        fetchOrders();
       }
-
-      toast.error(data.message || 'Ошибка закрытия заказа');
-    } catch (error) {
-      toast.error(
-        error.response?.data?.message || error.message || 'Ошибка закрытия заказа'
-      );
+    } catch (err) {
+      toast.error(getAxiosErrorMessage(err));
     }
   };
 
+  // =========================
+  // PRINT
+  // =========================
   const handlePrint = async (orderId) => {
     try {
       const data = await getReceiptByIdApi(orderId);
 
       if (data.code !== 0 || !data.response) {
-        throw new Error(data.message || 'Failed to load order');
+        throw new Error('Ошибка чека');
       }
 
-      const reseipt = data.response;
-
-      if (!reseipt) {
-        toast.error('Данные чека не найдены');
-        return;
-      }
-
-      await printReceipt(reseipt);
-      toast.success('Чек успешно распечатан');
-    } catch (error) {
-      toast.error(
-        error.response?.data?.message ||
-          error.message ||
-          'Ошибка печати чека'
-      );
+      await printReceipt(data.response);
+      toast.success('Чек напечатан');
+    } catch (err) {
+      toast.error(getAxiosErrorMessage(err));
     }
   };
 
+  // =========================
+  // DERIVED STATE
+  // =========================
   const orders = useMemo(() => paged.items ?? [], [paged.items]);
   const isIdSearch = parseId(appliedSearch) !== null;
+
   const canPrev = !isIdSearch && page > 1;
   const canNext = !isIdSearch && page < (paged.totalPages || 1);
 
+  // =========================
+  // API
+  // =========================
   return {
+    // view
     isViewOpen,
     setIsViewOpen,
     viewOrder,
     setViewOrder,
     viewLoading,
 
+    // filters
     searchQuery,
     appliedSearch,
+    from,
+    to,
+    setFrom,
+    setTo,
+
+    // pagination
     page,
     setPage,
     pageSize,
     selectedStatus,
+
+    // data
     loading,
     apiError,
     paged,
-    editLoading,
-    isModalOpen,
-    dialogMode,
-    selectedOrder,
-
     orders,
+
     canPrev,
     canNext,
 
+    // actions
     fetchOrders,
-    loadOrders: fetchOrders,
     handleSearchChange,
     handleStatusChange,
-    handleSearch,
-    handleSearchClear,
+    handlePageChange,
     handlePageSizeChange,
-    handleCreateOrder,
-    handleOrderDialogOpenChange,
     handleViewOrder,
-    handleEditOrder,
     handleDeleteOrder,
     handleCompleteOrder,
     handlePrint,
+
+    handleOrderDialogOpenChange,
   };
 }

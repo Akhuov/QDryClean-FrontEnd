@@ -69,7 +69,7 @@ function CardPagination({ className, vm, ...props }) {
     >
       {/* Info */}
       <div className="text-sm text-slate-500">
-        Showing page {vm.page} of {vm.paged.totalPages}
+        Showing page {vm.page} of {vm.paged.totalPages} | Total: {vm.paged.totalCount} items
       </div>
 
       {/* Controls */}

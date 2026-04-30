@@ -15,6 +15,7 @@ export default function NewOrderItemForm({
   fileInputRef,
   onPhotoChange,
   onRemovePhoto,
+  isAnalyzing,
   onCancel,
   onSave,
   formatCurrency,
@@ -34,7 +35,7 @@ export default function NewOrderItemForm({
             onValueChange={(value) =>
               setNewItem((prev) => ({ ...prev, type: value }))
             }
-            disabled={itemTypesLoading || itemTypes.length === 0}
+            disabled={itemTypesLoading || itemTypes.length === 0 || isAnalyzing}
           >
             <SelectTrigger className="bg-input-background border-input w-full">
               <SelectValue
@@ -79,7 +80,11 @@ export default function NewOrderItemForm({
             }
             placeholder="Бежевый"
             className="bg-input-background border-input w-full"
+            disabled={isAnalyzing}
           />
+          {isAnalyzing && (
+            <p className="text-sm text-blue-500">Анализирую фото...</p>
+          )}
         </div>
 
         <div className="space-y-2">
@@ -92,6 +97,7 @@ export default function NewOrderItemForm({
             }
             placeholder="Бренд"
             className="bg-input-background border-input w-full"
+            disabled={isAnalyzing}
           />
         </div>
       </div>
@@ -107,7 +113,12 @@ export default function NewOrderItemForm({
           placeholder="Пятно на кармане, потертость..."
           className="bg-input-background border-input w-full"
           rows={4}
+          disabled={isAnalyzing}
         />
+
+        {errors.photoAnalysis && (
+          <p className="text-sm text-red-500">{errors.photoAnalysis}</p>
+        )}
 
         {errors.details && (
           <p className="text-sm text-red-500">{errors.details}</p>
@@ -130,6 +141,7 @@ export default function NewOrderItemForm({
           variant="outline"
           className="gap-2"
           onClick={() => fileInputRef.current?.click()}
+          disabled={isAnalyzing}
         >
           <Upload className="h-4 w-4" />
           Upload photo

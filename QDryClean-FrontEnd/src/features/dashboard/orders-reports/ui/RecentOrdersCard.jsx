@@ -1,9 +1,10 @@
-import { useCallback, useEffect, useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '../../../../components/ui/Card';
+import { useCallback, useEffect, useMemo } from 'react';
+import { Card, CardContent, CardHeader, CardTitle, CardPagination } from '../../../../components/ui/Card';
 import { Button } from '../../../../components/ui/Button';
 import { useOrderPage } from '../../../order/model/useOrderPage';
 import OrderViewDialog from '../../../order/ui/OrderViewDialog';
 import { useNavigate } from 'react-router-dom';
+import { format } from 'date-fns';
 import {
   Table,
   TableBody,
@@ -12,48 +13,58 @@ import {
   TableHeader,
   TableRow,
 } from '../../../../components/ui/Table';
-import axiosInstance from '../../../../shared/api/axiosInstance';
+
 import OrderStatusBadge from '../../../../components/OrderStatusBadge';
 import PaymentStatusBadge from '../../../../components/PaymentStatusBadge';
-import { getAxiosErrorMessage } from '../../../../utils/apiHelpers';
 
-export default function RecentOrdersCard() {
+export default function RecentOrdersCard({ selectedPeriod }) {
   const navigate = useNavigate();
-  const vm = useOrderPage();
-  const [loading, setLoading] = useState(false);
-  const [apiError, setApiError] = useState('');
-  const [orders, setOrders] = useState([]);
+  
+  const from = useMemo(
+    () => (selectedPeriod?.from ? format(selectedPeriod.from, 'yyyy-MM-dd') : null),
+    [selectedPeriod?.from]
+  );
 
-  const fetchRecentOrders = useCallback(async () => {
-    setLoading(true);
-    setApiError('');
+  const to = useMemo(
+    () => (selectedPeriod?.to ? format(selectedPeriod.to, 'yyyy-MM-dd') : null),
+    [selectedPeriod?.to]
+  );
 
-    try {
-      const res = await axiosInstance.get('/orders', {
-        params: {
-          page: 1,
-          pageSize: 10,
-        },
-      });
+  const vm = useOrderPage(from, to);
 
-      if (res.data?.code !== 0) {
-        throw new Error(res.data?.message || 'API error');
-      }
+  // source of truth (без локального state)
+  const orders = vm.paged.items ?? [];
+  const loading = vm.loading;
+  const apiError = vm.apiError;
 
-      const resp = res.data.response ?? res.data.responseBody;
+  // =========================
+  // PAGE CHANGE (fixed)
+  // =========================
+  const handlePageChange = useCallback(
+    (pageOrFn) => {
+      vm.handlePageChange(pageOrFn);
+    },
+    [vm]
+  );
 
-      setOrders(resp?.items ?? []);
-    } catch (err) {
-      setApiError(getAxiosErrorMessage(err));
-      setOrders([]);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
+  const paginationVm = useMemo(
+    () => ({
+      page: vm.page,
+      loading: vm.loading,
+      canNext: vm.canNext,
+      paged: vm.paged,
+      setPage: handlePageChange,
+    }),
+    [vm.page, vm.loading, vm.canNext, vm.paged, handlePageChange]
+  );
 
+  // =========================
+  // PERIOD CHANGE (update from/to in useOrderPage)
+  // =========================
   useEffect(() => {
-    fetchRecentOrders();
-  }, [fetchRecentOrders]);
+    vm.setFrom(from);
+    vm.setTo(to);
+  }, [from, to, vm]);
 
   const formatDate = (date) =>
     date ? new Date(date).toLocaleDateString('ru-RU') : '—';
@@ -61,17 +72,13 @@ export default function RecentOrdersCard() {
   return (
     <Card className="border-slate-200 shadow-sm bg-white">
       <CardHeader className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between border-b border-slate-100 pb-6">
-        <CardTitle className="text-lg font-semibold">Последние заказы</CardTitle>
+        <CardTitle className="text-lg font-semibold">
+          Последние заказы
+        </CardTitle>
 
         <div className="flex items-center gap-3">
-          <Button variant="outline" className="rounded-xl cursor-pointer">
-            Экспорт CSV
-          </Button>
-          <Button
-            variant="outline"
-            className="rounded-xl cursor-pointer"
-            onClick={() => navigate('/orders')}
-          >
+          <Button variant="outline">Экспорт CSV</Button>
+          <Button onClick={() => navigate('/orders')}>
             Все заказы
           </Button>
         </div>
@@ -79,47 +86,53 @@ export default function RecentOrdersCard() {
 
       <CardContent className="p-0">
         {loading ? (
-          <div className="py-20 text-center text-slate-400 animate-pulse">Загрузка данных...</div>
+          <div className="py-20 text-center text-slate-400 animate-pulse">
+            Загрузка...
+          </div>
         ) : apiError ? (
-          <div className="py-20 text-center text-sm text-red-500">{apiError}</div>
+          <div className="py-20 text-center text-red-500 text-sm">
+            {apiError}
+          </div>
         ) : (
           <Table>
-            <TableHeader className="bg-slate-50/50">
+            <TableHeader>
               <TableRow>
-                <TableHead className="pl-6 py-4 text-slate-500 font-medium">Клиент</TableHead>
-                <TableHead className="text-slate-500 font-medium">Номер чека</TableHead>
-                <TableHead className="text-slate-500 font-medium">Дата</TableHead>
-                <TableHead className="text-center text-slate-500 font-medium">Позиции</TableHead>
-                <TableHead className="text-center text-slate-500 font-medium">Статус</TableHead>
-                <TableHead className="text-center text-slate-500 font-medium">Оплата</TableHead>
-                <TableHead className="text-right text-slate-500 font-medium">Стоимость</TableHead>
+                <TableHead>Клиент</TableHead>
+                <TableHead>Чек</TableHead>
+                <TableHead>Дата</TableHead>
+                <TableHead className="text-center">Позиции</TableHead>
+                <TableHead className="text-center">Статус</TableHead>
+                <TableHead className="text-center">Оплата</TableHead>
+                <TableHead className="text-right">Сумма</TableHead>
               </TableRow>
             </TableHeader>
 
             <TableBody>
               {orders.map((order) => (
-                <TableRow 
+                <TableRow
                   key={order.id}
-                  className="group cursor-pointer hover:bg-slate-100/80 transition-colors border-b border-slate-100 last:border-0 relative"
+                  className="cursor-pointer hover:bg-slate-100"
                   onClick={() => vm.handleViewOrder(order.id)}
                 >
-                  <TableCell className="pl-6 py-4">
-                    <div className="font-semibold text-slate-900">{order.customer?.fullName}</div>
-                    <div className="text-xs text-slate-400">{order.customer?.phoneNumber}</div>
+                  <TableCell>
+                    <div className="font-semibold">{order.customer?.fullName}</div>
+                    <div className="text-xs text-slate-400">
+                      {order.customer?.phoneNumber}
+                    </div>
                   </TableCell>
 
-                  <TableCell className="font-mono text-slate-500">
+                  <TableCell className="font-mono">
                     {order.receiptNumber}
                   </TableCell>
 
                   <TableCell>
-                    <div className="text-sm text-slate-700">{formatDate(order.createdAt)}</div>
-                    <div className="text-[10px] text-slate-400 uppercase tracking-tighter">
+                    <div>{formatDate(order.createdAt)}</div>
+                    <div className="text-xs text-slate-400">
                       ожид: {formatDate(order.expectedCompletionDate)}
                     </div>
                   </TableCell>
 
-                  <TableCell className="text-center font-medium text-slate-600">
+                  <TableCell className="text-center">
                     {order.itemsCount}
                   </TableCell>
 
@@ -131,15 +144,15 @@ export default function RecentOrdersCard() {
                     <PaymentStatusBadge status={order.paymentStatus} />
                   </TableCell>
 
-                  <TableCell className="text-right font-semibold text-slate-900 whitespace-nowrap">
-                    {order.totalCost?.toLocaleString()} <span className="text-[10px] text-slate-400 font-normal">СУМ</span>
+                  <TableCell className="text-right font-semibold">
+                    {order.totalCost?.toLocaleString()} СУМ
                   </TableCell>
                 </TableRow>
               ))}
 
               {!loading && orders.length === 0 && (
                 <TableRow>
-                  <TableCell colSpan={9} className="py-20 text-center text-slate-400 bg-slate-50/20">
+                  <TableCell colSpan={7} className="py-20 text-center text-slate-400">
                     Заказы не найдены
                   </TableCell>
                 </TableRow>
@@ -147,15 +160,15 @@ export default function RecentOrdersCard() {
             </TableBody>
           </Table>
         )}
+
+        <CardPagination vm={paginationVm} />
       </CardContent>
 
       <OrderViewDialog
         open={vm.isViewOpen}
         onOpenChange={(open) => {
-            vm.setIsViewOpen(open);
-            if (!open) {
-            vm.setViewOrder(null);
-            }
+          vm.setIsViewOpen(open);
+          if (!open) vm.setViewOrder(null);
         }}
         order={vm.viewOrder}
         loading={vm.viewLoading}

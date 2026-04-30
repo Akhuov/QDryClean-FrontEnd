@@ -1,5 +1,5 @@
-const PRINT_SERVICE_URL =
-  import.meta.env.VITE_PRINT_SERVICE_URL;
+const EXTERNAL_SERVICE_URL =
+  import.meta.env.VITE_EXTERNAL_SERVICE_URL;
 
 export async function printReceipt(receiptBase64, printerName = null) {
   if (!receiptBase64) {
@@ -11,7 +11,7 @@ export async function printReceipt(receiptBase64, printerName = null) {
     printerName,
   };
 
-  const response = await fetch(`${PRINT_SERVICE_URL}/print`, {
+  const response = await fetch(`${EXTERNAL_SERVICE_URL}/print`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',

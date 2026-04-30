@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { toast } from 'sonner';
+import axios from 'axios';
 import { EMPTY_NEW_ITEM } from './constants';
 import { formatPhoneInput, getPhoneNumberForRequest } from '../lib/phone';
 import { fetchItemTypesApi, searchCustomerByPhoneApi, getReceiptByIdApi } from '../api/orderApi';
@@ -30,6 +31,7 @@ export function useOrderDialog() {
   const [itemTypes, setItemTypes] = useState([]);
   const [itemTypesLoading, setItemTypesLoading] = useState(false);
   const [itemTypesError, setItemTypesError] = useState('');
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
 
   const itemsEndRef = useRef(null);
   const fileInputRef = useRef(null);
@@ -334,6 +336,66 @@ export function useOrderDialog() {
     }
   };
 
+  const handlePhotoAnalysis = async (file) => {
+    // Проверка на наличие файла и типов вещей
+    if (!file || !itemTypes || itemTypes.length === 0) {
+      toast.error('Файл не выбран или список типов вещей пуст');
+      return;
+    }
+
+    try {
+      setIsAnalyzing(true);
+      const toastId = toast.loading('Анализирую фото...');
+
+      const reader = new FileReader();
+
+      // Оборачиваем чтение файла в Promise, чтобы дождаться base64
+      const base64Data = await new Promise((resolve, reject) => {
+        reader.onload = () => {
+          try {
+            const result = reader.result;
+            const base64String = result.split(',')[1]; // Берем только часть после запятой
+            resolve(base64String);
+          } catch (error) {
+            reject(error);
+          }
+        };
+        reader.onerror = () => reject(new Error('Ошибка чтения файла'));
+        reader.readAsDataURL(file);
+      });
+
+      // Формируем строку из массива itemTypes в формате "ID: Name"
+      const typesString = itemTypes
+        .map((t) => `${t.id}: ${t.name}`)
+        .join(', ');
+
+      const response = await axios.post('http://192.168.1.4:5005/analyze-photo', {
+        imageBase64: base64Data,
+        itemTypes: typesString,
+      });
+
+      const data = response.data;
+
+      if (data) {
+        // Обновляем состояние newItem
+        setNewItem((prev) => ({
+          ...prev,
+          colour: data.color || prev.colour, // Поле colour получает значение data.color
+          type: data.itemTypeId ? String(data.itemTypeId) : prev.type, // Поле type получает значение String(data.itemTypeId)
+        }));
+
+        toast.success(`Анализ завершен: цвет - ${data.color}`, { id: toastId });
+      } else {
+        toast.error('Не получен ответ от сервера', { id: toastId });
+      }
+    } catch (error) {
+      console.error('AI Error:', error);
+      toast.error('Не удалось автоматически распознать фото');
+    } finally {
+      setIsAnalyzing(false);
+    }
+  };
+
   const handleDeleteItem = (itemId) => {
     setItems((prev) => {
       const itemToDelete = prev.find((item) => item.id === itemId);
@@ -450,6 +512,7 @@ export function useOrderDialog() {
     itemTypes,
     itemTypesLoading,
     itemTypesError,
+    isAnalyzing,
     isAddingItem,
     newItem,
     setNewItem,
@@ -481,5 +544,6 @@ export function useOrderDialog() {
     buildPayload,
     resetAllState,
     handlePrint,
+    handlePhotoAnalysis,
   };
 }
